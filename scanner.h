@@ -1,0 +1,28 @@
+#ifndef _SCANNER_H_
+#define _SCANNER_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include "elements.h"
+
+#define TOKEN_BUFFER_SIZE 120
+
+typedef enum
+{
+	SCANNER_STATE_LABEL,
+	SCANNER_STATE_OPERATION,
+	SCANNER_STATE_OPERAND_1,
+	SCANNER_STATE_OPERAND_2
+} scanner_state_t;
+
+void scan_line_elements(element_t *el, char *line, int line_size);
+int get_token(char **token, char *line, int pos);
+void sanitize_token_ending(char *token);
+int is_separator(char c);
+int is_end_of_line(char c);
+int is_label(char *token);
+int is_number(char *token);
+
+#endif /* _SCANNER_H_ */
