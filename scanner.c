@@ -73,36 +73,6 @@ void scan_line_elements(element_t *el, char *line, int line_size)
 		printf("\n");
 }
 
-/* TODO: Remove function */
-/*
-Extract one token from the line, starting at the index initial_position.
-Returns either the last position of the token when there is still more words to be
-extracted or -1 when the end of the line was reached.
-*/
-int get_token(char **token, char *line, int pos)
-{
-	int i; /* Line iterator */
-	int j; /* Buffer iterator */
-	char buffer[TOKEN_BUFFER_SIZE]; /* Token buffer */
-	
-	for (i = pos, j = 0; !is_end_of_line(line[i]); i++, j++)
-	{
-		if (is_separator(line[i]))
-			break;
-			
-		buffer[j] = line[i];
-	}
-	buffer[j] = '\0';
-	
-	/* Token now points to the buffered string */
-	*token = buffer;
-	
-	if (is_end_of_line(line[i]))
-		return -1;
-	
-	return i+1; /* Jump the last char because it was already analyzed */
-}
-
 /**
  * Remove undesirable chars from the token, such as '\n', ':' etc, by changing the end of
  * the string with '\0'.

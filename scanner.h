@@ -29,7 +29,6 @@ typedef enum
 } scanner_state_t;
 
 void scan_line_elements(element_t *el, char *line, int line_size);
-int get_token(char **token, char *line, int pos);
 void sanitize_token_ending(char *token);
 int is_separator(char c);
 int is_end_of_line(char c);
