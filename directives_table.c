@@ -3,9 +3,7 @@
  * @author Matheus Vieira Portela
  * @date   06/04/2014
  *
- * @brief  Implements the directives table
- *
- * This assembler was built to assemble the language used in the Systems Software course
+ * @brief  Implements the initialization of the directives table
  */
 
 #include "directives_table.h"

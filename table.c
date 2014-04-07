@@ -1,3 +1,13 @@
+/**
+ * @file   table.c
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Implements table functions
+ *
+ * Tables are implemented as linked lists, searchable by its label.
+ */
+
 #include "table.h"
 
 /*

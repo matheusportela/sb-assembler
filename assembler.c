@@ -31,6 +31,11 @@
  * INPUT	| 12		| 2		| mem(OP) <- input
  * OUTPUT	| 13		| 2		| output <- mem(OP)
  * STOP		| 14		| 1		| Stops execution
+ * 
+ * The following directives are also available, with its parameters in parenthesis when
+ * necessary:
+ * SPACE: Alloc space in memory (only one word)
+ * CONST (NUM): Write NUM to the memory in the address occupied by the directive
  */
 
 #include <stdio.h>

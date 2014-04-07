@@ -1,3 +1,14 @@
+/**
+ * @file   elements.h
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Declares the element struct and all necessary functions
+ *
+ * Elements are the basic structure for each line of the pseudo-assembly language. It
+ * stores all possible elements of a line: label, operation, and operands.
+ */
+
 #ifndef _ELEMENTS_H_
 #define _ELEMENTS_H_
 

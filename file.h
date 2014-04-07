@@ -1,3 +1,14 @@
+/**
+ * @file   file.h
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Declares utility functions over files
+ *
+ * These functions offer utilities over files, for instance, error checking and line
+ * reading without defining a number of bytes to be read.
+ */
+
 #ifndef _FILE_H_
 #define _FILE_H_
 

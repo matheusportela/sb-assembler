@@ -1,3 +1,13 @@
+/**
+ * @file   table.h
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Declares table node struct, table struct and table functions
+ *
+ * Tables can be used to store and find elements that respect the node struct.
+ */
+
 #ifndef _TABLE_H_
 #define _TABLE_H_
 

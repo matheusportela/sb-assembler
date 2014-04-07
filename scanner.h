@@ -1,3 +1,14 @@
+/**
+ * @file   scanner.h
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Defines scanner functions
+ *
+ * The scanner is responsible of getting a assembly line and separate all of its elements
+ * into tokens with respect to the language syntax.
+ */
+
 #ifndef _SCANNER_H_
 #define _SCANNER_H_
 

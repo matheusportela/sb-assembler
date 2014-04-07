@@ -1,3 +1,16 @@
+/**
+ * @file   elements.c
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Implements elements routines
+ *
+ * All fields in the element struct is implemented as a string of constant length. To make
+ * comparisons easier, strings are said to be empty when the first character is '\0'.
+ *
+ * Example: element_has_label(el) returns 0 if the label is '\0abc' and 1 if it is 'abc'
+ */
+
 #include "elements.h"
 
 /*

@@ -1,3 +1,14 @@
+/**
+ * @file   scanner.c
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Implements scanner functions
+ *
+ * Scan elements of a line and provide utility functions, for example, to sanitize tokens
+ * and check classes of characters and tokens (end of line, number etc).
+ */
+
 #include "scanner.h"
 
 /*

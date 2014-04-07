@@ -1,3 +1,11 @@
+/**
+ * @file   instructions_table.c
+ * @author Matheus Vieira Portela
+ * @date   06/04/2014
+ *
+ * @brief  Implements the initialization of the instructions and opcodes tables
+ */
+
 #include "instructions_table.h"
 
 void instructions_table_init(table_t *instructions_table)
