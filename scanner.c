@@ -11,19 +11,27 @@
 
 #include "scanner.h"
 
-/*
-Separate line elements in: label, operation, operands, and comments.
-First, it copies the line to copy_line because it is consumed by strsep.
-Start the state machine with PARSER_STATE_OPERATION, i.e., trying to extract the operation
-token. However, if the extracted token is a LABEL, it changes to PARSER_STATE_LABEL
-initially.
-*/
+/**
+ * Separate line elements in: label, operation, and operands. This is done by using a
+ * state machine, that identifies which element is being extracted at the current time.
+ * 
+ * First, it copies the line to copy_line because it is consumed by the token extraction
+ * function.
+ * 
+ * Start the state machine with PARSER_STATE_OPERATION, i.e., trying to extract the
+ * operation token. However, if the extracted token is a LABEL, it changes to
+ * PARSER_STATE_LABEL initially.
+ * 
+ * @param el element pointer.
+ * @param line string pointer.
+ * @param line_size size of the line in number of characters (with '\0' included)
+ */
 void scan_line_elements(element_t *el, char *line, int line_size)
 {
 	int debug = 0;
 	char *token;
 	scanner_state_t state = SCANNER_STATE_OPERATION;
-	char copy_line[line_size];
+	char copy_line[line_size]; /* TODO: Change to strlen() */
 	char *copy_line_ptr;
 	
 	strcpy(copy_line, line);
@@ -65,6 +73,7 @@ void scan_line_elements(element_t *el, char *line, int line_size)
 		printf("\n");
 }
 
+/* TODO: Remove function */
 /*
 Extract one token from the line, starting at the index initial_position.
 Returns either the last position of the token when there is still more words to be
@@ -94,10 +103,11 @@ int get_token(char **token, char *line, int pos)
 	return i+1; /* Jump the last char because it was already analyzed */
 }
 
-/*
-Remove undesirable chars from the token, such as '\n', ':' etc, by changing the end of the
-string with '\0'
-*/
+/**
+ * Remove undesirable chars from the token, such as '\n', ':' etc, by changing the end of
+ * the string with '\0'.
+ * @param token string pointer.
+ */
 void sanitize_token_ending(char *token)
 {
 	int i;
@@ -115,9 +125,11 @@ void sanitize_token_ending(char *token)
 	}
 }
 
-/*
-Check whether a character is defined as a separator character
-*/
+/**
+ * Check whether a character is defined as a separator character.
+ * @param c character to be checked.
+ * @return 1 if c is a separator element or 0 otherwise.
+ */
 int is_separator(char c)
 {
 	switch (c)
@@ -129,9 +141,11 @@ int is_separator(char c)
 	return 0;
 }
 
-/*
-Check whether a character is defined as a end of line character
-*/
+/**
+ * Check whether a character is defined as a end of line character.
+ * @param c character to be checked.
+ * @return 1 if c is a end of line element or 0 otherwise.
+ */
 int is_end_of_line(char c)
 {
 	switch (c)
@@ -144,10 +158,12 @@ int is_end_of_line(char c)
 	return 0;
 }
 
-/*
-Check whether a given token is a label, which is recognized by its last character being
-":"
-*/
+/**
+ * Check whether a given token is a label, which is recognized by its last character being
+ * ":".
+ * @param token string pointer.
+ * @return 1 if token is a label or 0 otherwise.
+ */
 int is_label(char *token)
 {
 	int token_size = strlen(token);
@@ -155,9 +171,11 @@ int is_label(char *token)
 	return (last_char == ':');
 }
 
-/*
-Check whether a given token is a number
-*/
+/**
+ * Check whether a given token is entirely composed by numbers.
+ * @param token string pointer.
+ * @return 1 if token is a number or 0 otherwise.
+ */
 int is_number(char *token)
 {
 	int i;

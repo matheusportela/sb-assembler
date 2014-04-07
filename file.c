@@ -8,9 +8,11 @@
 
 #include "file.h"
 
-/*
-Opens a file and check for correctness
-*/
+/**
+ * Opens a file in reading mode and check for erros.
+ * @param filename the name of the file to be opened.
+ * @return pointer to the opened file struct.
+ */
 FILE* file_open(char *filename)
 {
 	FILE *fp = fopen(filename, "r");
@@ -24,9 +26,10 @@ FILE* file_open(char *filename)
 	return fp;
 }
 
-/*
-Prints all lines of a file
-*/
+/**
+ * Prints all lines of a file, preceded by its number.
+ * @param fp opened file pointer.
+ */
 void file_print(FILE *fp)
 {
 	char line[FILE_LINE_LENGTH];
@@ -39,19 +42,23 @@ void file_print(FILE *fp)
 	printf("\n");
 }
 
-/*
-Closes a file
-*/
+/**
+ * Closes a file
+ * @param fp opened file pointer.
+ */
 void file_close(FILE *fp)
 {
 	fclose(fp);
 }
 
-/*
-Read only one line of the file, which ends with '\n'.
-Returns the line size when it was successfully read and FILE_LINE_LENGTH if it reached the
-end of file.
-*/
+/**
+ * Read only one line of the file, of at most FILE_LINE_LENGTH chars, that ends with '\n'.
+ * Returns the line size when it was successfully read and FILE_FINISHED if it has reached
+ * the end of file.
+ * @param fp opened file pointer.
+ * @param line line vector to store the characters.
+ * @return line size of FILE_FINISHED
+ */
 int file_read_line(FILE *fp, char line[])
 {
 	int i;

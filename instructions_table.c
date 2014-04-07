@@ -8,6 +8,10 @@
 
 #include "instructions_table.h"
 
+/**
+ * Init a instructions table with the hardcoded instructions.
+ * @param instructions_table a table pointer to store all instructions.
+ */
 void instructions_table_init(table_t *instructions_table)
 {
 	table_init(instructions_table);
@@ -27,6 +31,10 @@ void instructions_table_init(table_t *instructions_table)
 	table_add(instructions_table, "STOP", 1);
 }
 
+/**
+ * Init a opcodes table with the hardcoded instructions opcodes.
+ * @param opcodes_table a table pointer to store all instructions opcodes.
+ */
 void opcodes_table_init(table_t *opcodes_table)
 {
 	table_init(opcodes_table);

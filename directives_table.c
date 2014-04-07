@@ -8,6 +8,10 @@
 
 #include "directives_table.h"
 
+/**
+ * Init a directives table with the hardcoded directives.
+ * @param directives_table a table pointer to store all directives.
+ */
 void directives_table_init(table_t *directives_table)
 {
 	table_init(directives_table);
