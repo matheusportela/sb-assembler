@@ -146,7 +146,7 @@ int assembler_first_pass(char *filename,
 	
 	while(file_read_line(fp, line_buffer) != FILE_FINISHED)
 	{
-		scan_line_elements(&elements, line_buffer, FILE_LINE_LENGTH);
+		scan_line_elements(&elements, line_buffer);
 		if (DEBUG)
 		{
 			printf("Line: %s\n", line_buffer);
@@ -251,7 +251,7 @@ void assembler_second_pass(char *filename,
 	
 	while(file_read_line(fp, line_buffer) != FILE_FINISHED)
 	{
-		scan_line_elements(&elements, line_buffer, FILE_LINE_LENGTH);
+		scan_line_elements(&elements, line_buffer);
 		if (DEBUG)
 		{
 			printf("Line: %s\n", line_buffer);

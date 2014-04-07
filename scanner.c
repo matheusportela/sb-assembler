@@ -24,18 +24,15 @@
  * 
  * @param el element pointer.
  * @param line string pointer.
- * @param line_size size of the line in number of characters (with '\0' included)
  */
-void scan_line_elements(element_t *el, char *line, int line_size)
+void scan_line_elements(element_t *el, char *line)
 {
-	int debug = 0;
 	char *token;
 	scanner_state_t state = SCANNER_STATE_OPERATION;
-	char copy_line[line_size]; /* TODO: Change to strlen() */
-	char *copy_line_ptr;
+	int line_size = strlen(line);
+	char copy_line[line_size];
 	
 	strcpy(copy_line, line);
-	copy_line_ptr = copy_line;
 	
 	token = strtok(copy_line," ,\t");
 	while (token != NULL)
@@ -68,9 +65,6 @@ void scan_line_elements(element_t *el, char *line, int line_size)
 		++state;
 		token = strtok (NULL, " ,\t");
 	}
-	
-	if (debug)
-		printf("\n");
 }
 
 /**

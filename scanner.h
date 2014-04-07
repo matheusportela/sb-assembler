@@ -28,7 +28,7 @@ typedef enum
 	SCANNER_STATE_OPERAND_2
 } scanner_state_t;
 
-void scan_line_elements(element_t *el, char *line, int line_size);
+void scan_line_elements(element_t *el, char *line);
 void sanitize_token_ending(char *token);
 int is_separator(char c);
 int is_end_of_line(char c);
