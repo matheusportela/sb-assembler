@@ -19,16 +19,16 @@
 
 struct table_node_struct
 {
-	char label[TABLE_NODE_LABEL_SIZE];
-	int value;
-	struct table_node_struct *next_node;
+    char label[TABLE_NODE_LABEL_SIZE];
+    int value;
+    struct table_node_struct *next_node;
 };
 typedef struct table_node_struct table_node_t;
 
 typedef struct
 {
-	table_node_t *head;
-	table_node_t *tail;
+    table_node_t *head;
+    table_node_t *tail;
 } table_t;
 
 void table_init(table_t *table);

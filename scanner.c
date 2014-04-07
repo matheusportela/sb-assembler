@@ -27,44 +27,44 @@
  */
 void scan_line_elements(element_t *el, char *line)
 {
-	char *token;
-	scanner_state_t state = SCANNER_STATE_OPERATION;
-	int line_size = strlen(line);
-	char copy_line[line_size];
-	
-	strcpy(copy_line, line);
-	
-	token = strtok(copy_line," ,\t");
-	while (token != NULL)
-	{
-		if (is_label(token))
-			state = SCANNER_STATE_LABEL;
-		
-		sanitize_token_ending(token);
-		
-		switch (state)
-		{
-			case SCANNER_STATE_LABEL:
-				strcpy(el->label, token);
-				break;
-			case SCANNER_STATE_OPERATION:
-				strcpy(el->operation, token);
-				break;
-			case SCANNER_STATE_OPERAND_1:
-				strcpy(el->operand1, token);
-				break;
-			case SCANNER_STATE_OPERAND_2:
-				strcpy(el->operand2, token);
-				break;
-			default:
-				/* TODO: Ignore? (May be a comment) */
-				fprintf(stderr, "ERROR: In get_line_elements: Not a valid state %d Last token: %s\n",
-						state, token);
-				exit(-1);
-		}
-		++state;
-		token = strtok (NULL, " ,\t");
-	}
+    char *token;
+    scanner_state_t state = SCANNER_STATE_OPERATION;
+    int line_size = strlen(line);
+    char copy_line[line_size];
+    
+    strcpy(copy_line, line);
+    
+    token = strtok(copy_line," ,\t");
+    while (token != NULL)
+    {
+        if (is_label(token))
+            state = SCANNER_STATE_LABEL;
+        
+        sanitize_token_ending(token);
+        
+        switch (state)
+        {
+            case SCANNER_STATE_LABEL:
+                strcpy(el->label, token);
+                break;
+            case SCANNER_STATE_OPERATION:
+                strcpy(el->operation, token);
+                break;
+            case SCANNER_STATE_OPERAND_1:
+                strcpy(el->operand1, token);
+                break;
+            case SCANNER_STATE_OPERAND_2:
+                strcpy(el->operand2, token);
+                break;
+            default:
+                /* TODO: Ignore? (May be a comment) */
+                fprintf(stderr, "ERROR: In get_line_elements: Not a valid state %d Last token: %s\n",
+                        state, token);
+                exit(-1);
+        }
+        ++state;
+        token = strtok (NULL, " ,\t");
+    }
 }
 
 /**
@@ -74,19 +74,19 @@ void scan_line_elements(element_t *el, char *line)
  */
 void sanitize_token_ending(char *token)
 {
-	int i;
-	
-	for(i = 0; token[i] != '\0'; i++)
-	{
-		switch (token[i])
-		{
-			case '\n':
-			case ':':
-			case -1: /* This one is weird and appears on the last word of the file */
-				token[i] = '\0';
-				break;
-		}
-	}
+    int i;
+    
+    for(i = 0; token[i] != '\0'; i++)
+    {
+        switch (token[i])
+        {
+            case '\n':
+            case ':':
+            case -1: /* This one is weird and appears on the last word of the file */
+                token[i] = '\0';
+                break;
+        }
+    }
 }
 
 /**
@@ -96,13 +96,13 @@ void sanitize_token_ending(char *token)
  */
 int is_separator(char c)
 {
-	switch (c)
-	{
-		case ' ':
-			return 1;
-	}
-	
-	return 0;
+    switch (c)
+    {
+        case ' ':
+            return 1;
+    }
+    
+    return 0;
 }
 
 /**
@@ -112,14 +112,14 @@ int is_separator(char c)
  */
 int is_end_of_line(char c)
 {
-	switch (c)
-	{
-		case '\n':
-		case '\0':
-			return 1;
-	}
-	
-	return 0;
+    switch (c)
+    {
+        case '\n':
+        case '\0':
+            return 1;
+    }
+    
+    return 0;
 }
 
 /**
@@ -130,9 +130,9 @@ int is_end_of_line(char c)
  */
 int is_label(char *token)
 {
-	int token_size = strlen(token);
-	char last_char = token[token_size - 1]; /* Ignoring \0 */
-	return (last_char == ':');
+    int token_size = strlen(token);
+    char last_char = token[token_size - 1]; /* Ignoring \0 */
+    return (last_char == ':');
 }
 
 /**
@@ -142,12 +142,12 @@ int is_label(char *token)
  */
 int is_number(char *token)
 {
-	int i;
-	
-	for(i = 0; token[i] != '\0'; ++i)
-	{
-		if (!(token[i] >= '0' && token[i] <= '9'))
-			return 0;
-	}
-	return 1;
+    int i;
+    
+    for(i = 0; token[i] != '\0'; ++i)
+    {
+        if (!(token[i] >= '0' && token[i] <= '9'))
+            return 0;
+    }
+    return 1;
 }

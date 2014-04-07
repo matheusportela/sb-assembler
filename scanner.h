@@ -22,10 +22,10 @@
 
 typedef enum
 {
-	SCANNER_STATE_LABEL,
-	SCANNER_STATE_OPERATION,
-	SCANNER_STATE_OPERAND_1,
-	SCANNER_STATE_OPERAND_2
+    SCANNER_STATE_LABEL,
+    SCANNER_STATE_OPERATION,
+    SCANNER_STATE_OPERAND_1,
+    SCANNER_STATE_OPERAND_2
 } scanner_state_t;
 
 void scan_line_elements(element_t *el, char *line);

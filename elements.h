@@ -14,10 +14,10 @@
 
 typedef struct
 {
-	char label[80];
-	char operation[80];
-	char operand1[80];
-	char operand2[80];
+    char label[80];
+    char operation[80];
+    char operand1[80];
+    char operand2[80];
 } element_t;
 
 void element_init(element_t *el);
