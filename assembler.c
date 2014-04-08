@@ -48,6 +48,7 @@
 #include "table.h"
 #include "directives_table.h"
 #include "instructions_table.h"
+#include "linked_list.h"
 
 #define DEBUG 0
 
