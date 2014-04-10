@@ -48,17 +48,18 @@
 #include "table.h"
 #include "directives_table.h"
 #include "instructions_table.h"
+#include "symbols_table.h"
 #include "linked_list.h"
 #include "hash_table.h"
 
 #define DEBUG 0
 
 int assembler_first_pass(char *filename,
-                         table_t *symbols_table,
+                         hash_table_t *symbols_table,
                          hash_table_t *instructions_table,
                          hash_table_t *directives_table);
 void assembler_second_pass(char *filename,
-                           table_t *symbols_table,
+                           hash_table_t *symbols_table,
                            hash_table_t *instructions_table,
                            hash_table_t *directives_table,
                            int program_size);
@@ -69,13 +70,13 @@ void assembler_second_pass(char *filename,
  */
 int main()
 {
-    table_t symbols_table;
+    hash_table_t symbols_table;
     hash_table_t instructions_table;
     hash_table_t directives_table;
     int program_size;
     
     /* Init all tables */
-    table_init(&symbols_table);
+    symbols_table_init(&symbols_table);
     instructions_table_init(&instructions_table);
     directives_table_init(&directives_table);
     
@@ -105,7 +106,7 @@ int main()
                           program_size);
                              
     /* Free all tables*/
-    table_free(&symbols_table);
+    hash_destroy(&symbols_table);
     hash_destroy(&instructions_table);
     hash_destroy(&directives_table);
     return 0;
@@ -125,7 +126,7 @@ int main()
  * @return The size of the assembled program
  */
 int assembler_first_pass(char *filename,
-                         table_t *symbols_table,
+                         hash_table_t *symbols_table,
                          hash_table_t *instructions_table,
                          hash_table_t *directives_table)
 {
@@ -158,13 +159,13 @@ int assembler_first_pass(char *filename,
          */
         if (element_has_label(&elements))
         {
-            if (table_find(symbols_table, elements.label))
+            if (hash_search(symbols_table, elements.label))
             {
                 fprintf(stderr, "ERROR: Redefined label: %s\n", elements.label);
                 exit(-1);
             }
     
-            table_add(symbols_table, elements.label, position_counter);
+            symbols_table_add(symbols_table, elements.label, position_counter);
         }
         
         /*
@@ -198,7 +199,7 @@ int assembler_first_pass(char *filename,
     }
     
     if (DEBUG)
-        table_print(symbols_table);
+        hash_print(symbols_table);
     
     file_close(fp);
     
@@ -220,7 +221,7 @@ int assembler_first_pass(char *filename,
  * @return The size of the assembled program
  */
 void assembler_second_pass(char *filename,
-                           table_t *symbols_table,
+                           hash_table_t *symbols_table,
                            hash_table_t *instructions_table,
                            hash_table_t *directives_table,
                            const int program_size)
@@ -230,7 +231,7 @@ void assembler_second_pass(char *filename,
     element_t elements;
     instruction_t *instruction_ptr;
     directive_t *directive_ptr;
-    table_node_t *symbol_node_ptr;
+    symbol_t *symbol_ptr;
     int i;
     int position_counter = 0;
     int compiled_program[program_size];
@@ -261,7 +262,7 @@ void assembler_second_pass(char *filename,
          * Numbers are not symbols, so they should be ignored
          */
         if (element_has_operand1(&elements)
-            && (!table_find(symbols_table, elements.operand1))
+            && (!hash_search(symbols_table, elements.operand1))
             && (!is_number(elements.operand1)))
         {
             fprintf(stderr, "ERROR: Undefined operand: %s\n", elements.operand1);
@@ -269,7 +270,7 @@ void assembler_second_pass(char *filename,
         }
         
         if (element_has_operand2(&elements)
-            && (!table_find(symbols_table, elements.operand2))
+            && (!hash_search(symbols_table, elements.operand2))
             && (!is_number(elements.operand2)))
         {
             fprintf(stderr, "ERROR: Undefined operand: %s\n", elements.operand2);
@@ -294,14 +295,14 @@ void assembler_second_pass(char *filename,
                 
                 if(element_has_operand1(&elements))
                 {
-                    symbol_node_ptr = table_find(symbols_table, elements.operand1);
-                    compiled_program[position_counter + 1] = symbol_node_ptr->value;
+                    symbol_ptr = hash_search(symbols_table, elements.operand1);
+                    compiled_program[position_counter + 1] = symbol_ptr->value;
                 }
                 
                 if(element_has_operand2(&elements))
                 {
-                    symbol_node_ptr = table_find(symbols_table, elements.operand2);
-                    compiled_program[position_counter + 2] = symbol_node_ptr->value;
+                    symbol_ptr = hash_search(symbols_table, elements.operand2);
+                    compiled_program[position_counter + 2] = symbol_ptr->value;
                 }
             }
             else
@@ -347,7 +348,7 @@ void assembler_second_pass(char *filename,
     }
     
     if (DEBUG)
-        table_print(symbols_table);
+        hash_print(symbols_table);
     
     file_close(fp);
 }
