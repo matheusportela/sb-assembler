@@ -9,9 +9,9 @@ typedef struct
     char z;
 } data_t;
 
-int compare(data_t *data, int value)
+int compare(data_t *data, int key)
 {
-    if (data->x == value)
+    if (data->x == key)
         return 1;
     return 0;
 }

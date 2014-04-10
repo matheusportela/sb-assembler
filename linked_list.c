@@ -1,3 +1,11 @@
+/**
+ * @file   linked_list.c
+ * @author Matheus Vieira Portela
+ * @date   07/04/2014
+ *
+ * @brief  Implements generic linked list functions
+ */
+
 #include "linked_list.h"
 
 void list_create(list_t *list, int data_size, compare_function compare_fn,
@@ -49,6 +57,27 @@ void list_prepend(list_t *list, void *data)
     /* first node? */
     if(!list->tail)
         list->tail = list->head;
+
+    list->length++;
+}
+
+void list_append(list_t *list, void *data)
+{
+    list_node_t *node = malloc(sizeof(list_node_t));
+    node->data = malloc(list->data_size);
+    node->next = NULL;
+    memcpy(node->data, data, list->data_size);
+
+    /* first node? */
+    if(list->length == 0)
+    {
+        list->head = list->tail = node;
+    }
+    else
+    {
+        list->tail->next = node;
+        list->tail = node;
+    }
 
     list->length++;
 }
