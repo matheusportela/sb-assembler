@@ -82,12 +82,8 @@ int main()
     
     if (DEBUG)
     {
-        printf("Instructions\n");
         hash_print(&instructions_table);
-        printf("\n\n");
-        printf("Directives\n");
         hash_print(&directives_table);
-        printf("\n");
     }
     
     if (DEBUG)
