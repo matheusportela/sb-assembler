@@ -1,7 +1,7 @@
 /**
  * @file   hash_table.c
  * @author Matheus Vieira Portela
- * @date   07/04/2014
+ * @date   10/04/2014
  *
  * @brief  Implements hash table functions
  *
