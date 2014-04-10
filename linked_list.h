@@ -87,7 +87,8 @@ struct list_node_struct
 };
 typedef struct list_node_struct list_node_t;
 
-typedef struct {
+typedef struct
+{
   int length;
   int data_size;
   list_node_t *head;
@@ -99,10 +100,8 @@ typedef struct {
 void list_create(list_t *list, int data_size, compare_function compare_fn,
                  print_function print_fn);
 void list_destroy(list_t *list);
- 
 void list_prepend(list_t *list, void *data);
 void list_append(list_t *list, void *data);
-/* TODO: define a append function */
 int list_length(list_t *list);
 void* list_find(list_t *list, void *label);
 void list_print(list_t *list);
