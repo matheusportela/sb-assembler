@@ -56,11 +56,11 @@
 int assembler_first_pass(char *filename,
                          table_t *symbols_table,
                          hash_table_t *instructions_table,
-                         table_t *directives_table);
+                         hash_table_t *directives_table);
 void assembler_second_pass(char *filename,
                            table_t *symbols_table,
                            hash_table_t *instructions_table,
-                           table_t *directives_table,
+                           hash_table_t *directives_table,
                            int program_size);
 
 /**
@@ -71,7 +71,7 @@ int main()
 {
     table_t symbols_table;
     hash_table_t instructions_table;
-    table_t directives_table;
+    hash_table_t directives_table;
     int program_size;
     
     /* Init all tables */
@@ -85,7 +85,7 @@ int main()
         hash_print(&instructions_table);
         printf("\n\n");
         printf("Directives\n");
-        table_print(&directives_table);
+        hash_print(&directives_table);
         printf("\n");
     }
     
@@ -107,7 +107,7 @@ int main()
     /* Free all tables*/
     table_free(&symbols_table);
     hash_destroy(&instructions_table);
-    table_free(&directives_table);
+    hash_destroy(&directives_table);
     return 0;
 }
 
@@ -127,13 +127,13 @@ int main()
 int assembler_first_pass(char *filename,
                          table_t *symbols_table,
                          hash_table_t *instructions_table,
-                         table_t *directives_table)
+                         hash_table_t *directives_table)
 {
     FILE *fp;
     char line_buffer[FILE_LINE_LENGTH];
     element_t elements;
     instruction_t *instruction_ptr;
-    table_node_t *directive_node_ptr;
+    directive_t *directive_ptr;
     int position_counter = 0;
     
     fp = file_open(filename);
@@ -178,14 +178,14 @@ int assembler_first_pass(char *filename,
         }
         else
         {
-            directive_node_ptr = table_find(directives_table, elements.operation);
-            if (directive_node_ptr)
+            directive_ptr = hash_search(directives_table, elements.operation);
+            if (directive_ptr)
             {
                 /*
                  * TODO: This should execute the subroutine of the directive
                  * Update as soon as the directives table are implemented
                  */
-                position_counter += directive_node_ptr->value;
+                position_counter += directive_ptr->size;
             }
             else
             {
@@ -222,14 +222,14 @@ int assembler_first_pass(char *filename,
 void assembler_second_pass(char *filename,
                            table_t *symbols_table,
                            hash_table_t *instructions_table,
-                           table_t *directives_table,
+                           hash_table_t *directives_table,
                            const int program_size)
 {
     FILE *fp;
     char line_buffer[FILE_LINE_LENGTH];
     element_t elements;
     instruction_t *instruction_ptr;
-    table_node_t *directive_node_ptr;
+    directive_t *directive_ptr;
     table_node_t *symbol_node_ptr;
     int i;
     int position_counter = 0;
@@ -317,10 +317,10 @@ void assembler_second_pass(char *filename,
         }
         else
         {
-            directive_node_ptr = table_find(directives_table, elements.operation);
-            if (directive_node_ptr)
+            directive_ptr = hash_search(directives_table, elements.operation);
+            if (directive_ptr)
             {
-                instruction_size = directive_node_ptr->value;
+                instruction_size = directive_ptr->size;
                 
                 /*
                  * TODO: This should execute the subroutine of the directive
