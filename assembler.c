@@ -45,7 +45,6 @@
 #include "file.h"
 #include "elements.h"
 #include "scanner.h"
-#include "table.h"
 #include "directives_table.h"
 #include "instructions_table.h"
 #include "symbols_table.h"
