@@ -55,12 +55,11 @@
 
 int assembler_first_pass(char *filename,
                          table_t *symbols_table,
-                         table_t *instructions_table,
+                         hash_table_t *instructions_table,
                          table_t *directives_table);
 void assembler_second_pass(char *filename,
                            table_t *symbols_table,
-                           table_t *instructions_table,
-                           table_t *opcodes_table,
+                           hash_table_t *instructions_table,
                            table_t *directives_table,
                            int program_size);
 
@@ -71,24 +70,19 @@ void assembler_second_pass(char *filename,
 int main()
 {
     table_t symbols_table;
-    table_t instructions_table;
-    table_t opcodes_table;
+    hash_table_t instructions_table;
     table_t directives_table;
     int program_size;
     
     /* Init all tables */
     table_init(&symbols_table);
     instructions_table_init(&instructions_table);
-    opcodes_table_init(&opcodes_table);
     directives_table_init(&directives_table);
     
     if (DEBUG)
     {
         printf("Instructions\n");
-        table_print(&instructions_table);
-        printf("\n\n");
-        printf("Opcodes\n");
-        table_print(&opcodes_table);
+        hash_print(&instructions_table);
         printf("\n\n");
         printf("Directives\n");
         table_print(&directives_table);
@@ -107,14 +101,12 @@ int main()
     assembler_second_pass("test.txt",
                           &symbols_table,
                           &instructions_table,
-                          &opcodes_table,
                           &directives_table,
                           program_size);
                              
     /* Free all tables*/
     table_free(&symbols_table);
-    table_free(&instructions_table);
-    table_free(&opcodes_table);
+    hash_destroy(&instructions_table);
     table_free(&directives_table);
     return 0;
 }
@@ -134,13 +126,13 @@ int main()
  */
 int assembler_first_pass(char *filename,
                          table_t *symbols_table,
-                         table_t *instructions_table,
+                         hash_table_t *instructions_table,
                          table_t *directives_table)
 {
     FILE *fp;
     char line_buffer[FILE_LINE_LENGTH];
     element_t elements;
-    table_node_t *instruction_node_ptr;
+    instruction_t *instruction_ptr;
     table_node_t *directive_node_ptr;
     int position_counter = 0;
     
@@ -179,10 +171,10 @@ int assembler_first_pass(char *filename,
          * Looks for operation in the operations table or directives table.
          * Gives error if it is not defined in the language or as a proper directive
          */
-        instruction_node_ptr = table_find(instructions_table, elements.operation);
-        if (instruction_node_ptr)
+        instruction_ptr = hash_search(instructions_table, elements.operation);
+        if (instruction_ptr)
         {
-            position_counter += instruction_node_ptr->value;
+            position_counter += instruction_ptr->size;
         }
         else
         {
@@ -229,16 +221,14 @@ int assembler_first_pass(char *filename,
  */
 void assembler_second_pass(char *filename,
                            table_t *symbols_table,
-                           table_t *instructions_table,
-                           table_t *opcodes_table,
+                           hash_table_t *instructions_table,
                            table_t *directives_table,
                            const int program_size)
 {
     FILE *fp;
     char line_buffer[FILE_LINE_LENGTH];
     element_t elements;
-    table_node_t *instruction_node_ptr;
-    table_node_t *opcode_node_ptr;
+    instruction_t *instruction_ptr;
     table_node_t *directive_node_ptr;
     table_node_t *symbol_node_ptr;
     int i;
@@ -290,18 +280,17 @@ void assembler_second_pass(char *filename,
          * Looks for operation in the operations table or directives table
          * Gives error if it has a wrong number of operands or as a proper directive
          */
-        instruction_node_ptr = table_find(instructions_table, elements.operation);
-        if (instruction_node_ptr)
+        instruction_ptr = hash_search(instructions_table, elements.operation);
+        if (instruction_ptr)
         {
-            instruction_size = instruction_node_ptr->value;
+            instruction_size = instruction_ptr->size;
         
             if ((instruction_size - 1) == element_count_operands(&elements))
             {
                 /*
                  * Generates object-code OPERATION OPERAND1 OPERAND2
                  */
-                opcode_node_ptr = table_find(opcodes_table, elements.operation);
-                compiled_program[position_counter] = opcode_node_ptr->value;
+                compiled_program[position_counter] = instruction_ptr->opcode;
                 
                 if(element_has_operand1(&elements))
                 {
@@ -320,7 +309,7 @@ void assembler_second_pass(char *filename,
                 fprintf(stderr, "ERROR: Wrong number of operands "
                                 "(it is %d but should be %d)\n",
                         element_count_operands(&elements),
-                        (instruction_node_ptr->value - 1));
+                        (instruction_ptr->size - 1));
                 exit(-1);
             }
             
