@@ -67,12 +67,23 @@ void assembler_second_pass(char *filename,
  * Main function
  * Init all required tables, run passes, and free tables.
  */
-int main()
+int main(int argc, char **argv)
 {
+    char *filename;
     hash_table_t symbols_table;
     hash_table_t instructions_table;
     hash_table_t directives_table;
     int program_size;
+    
+    /* Getting filename from command line argument */
+    if (argc != 2)
+    {
+        fprintf(stderr, "ERROR: Wrong number of arguments\n");
+        fprintf(stderr, "Usage: assembler <filename>\n");
+        exit(-1);
+    }
+    
+    filename = argv[1];
     
     /* Init all tables */
     symbols_table_init(&symbols_table);
@@ -87,14 +98,14 @@ int main()
     
     if (DEBUG)
         printf("First pass\n");
-    program_size = assembler_first_pass("test.txt",
+    program_size = assembler_first_pass(filename,
                                         &symbols_table,
                                         &instructions_table,
                                         &directives_table);
     
     if (DEBUG)
         printf("\nSecond pass\n");
-    assembler_second_pass("test.txt",
+    assembler_second_pass(filename,
                           &symbols_table,
                           &instructions_table,
                           &directives_table,
@@ -337,6 +348,7 @@ void assembler_second_pass(char *filename,
         element_clear(&elements); /* So as one line does not interfere to the other */
         
         /* Print the object code line for visualization purposes */
+        printf("(addr. %d)", (position_counter - instruction_size));
         for (i = instruction_size; i > 0; --i)
             printf(" %d", compiled_program[position_counter - i]);
         printf("\n");
