@@ -42,7 +42,7 @@ void hash_destroy(hash_table_t *hash_table)
  * Look for a node in the hash table based on the given key.
  * @param hash_table pointer for the previously initialised hash table.
  * @param key string pointer that defines the key to be searched.
- * @return the node data ir there is a node with the given key, otherwise, NULL.
+ * @return the node data if there is a node with the given key, otherwise, NULL.
  */
 void* hash_search(hash_table_t *hash_table, char *key)
 {
@@ -50,7 +50,7 @@ void* hash_search(hash_table_t *hash_table, char *key)
     hash_list_node_t *hash_list_node;
     
     hash_index = hash_function(key);
-    hash_list_node = list_find(&hash_table->table[hash_index], key);
+    hash_list_node = list_search(&hash_table->table[hash_index], key);
     
     if (hash_list_node != NULL)
         return hash_list_node->data;

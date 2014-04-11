@@ -8,6 +8,13 @@
 
 #include "linked_list.h"
 
+/**
+ * Initialise the linked list properties and pointers.
+ * @param list pointer for the previously allocated linked list pointer.
+ * @param data_size size of the data element.
+ * @param compare_fn pointer for a function to compare some data elements.
+ * @param print_tf pointer for a function to print a data element.
+ */
 void list_create(list_t *list, int data_size, compare_function compare_fn,
                  print_function print_fn)
 {
@@ -31,6 +38,10 @@ void list_create(list_t *list, int data_size, compare_function compare_fn,
     list->print_fn = print_fn;
 }
 
+/**
+ * Free all linked list nodes and its data.
+ * @param list pointer for the previously initialised linked list.
+ */
 void list_destroy(list_t *list)
 {
     list_node_t *current_node;
@@ -44,7 +55,12 @@ void list_destroy(list_t *list)
         free(current_node);
     }
 }
- 
+
+/**
+ * Insert some data to the beginning of the linked list.
+ * @param list pointer for the previously initialised linked list.
+ * @param data pointer for the previously allocated data.
+ */
 void list_prepend(list_t *list, void *data)
 {
     list_node_t *node = malloc(sizeof(list_node_t));
@@ -61,6 +77,11 @@ void list_prepend(list_t *list, void *data)
     list->length++;
 }
 
+/**
+ * Insert some data to the end of the linked list.
+ * @param list pointer for the previously initialised linked list.
+ * @param data pointer for the previously allocated data.
+ */
 void list_append(list_t *list, void *data)
 {
     list_node_t *node = malloc(sizeof(list_node_t));
@@ -82,12 +103,23 @@ void list_append(list_t *list, void *data)
     list->length++;
 }
  
+/**
+ * Return the current number of elements in the linked list.
+ * @param list pointer for the previously initialised linked list.
+ * @return linked list current length.
+ */
 int list_length(list_t *list)
 {
     return list->length;
 }
 
-void* list_find(list_t *list, void *label)
+/**
+ * Look for a node in the linked list that has the same label as the given one.
+ * @param list pointer for the previously initialised linked list.
+ * @param label string pointer that defines the label to be searched.
+ * @return the node data pointer if there is a node with the given label, otherwise, NULL.
+ */
+void* list_search(list_t *list, void *label)
 {
     list_node_t *current_node = list->head;
     
@@ -102,6 +134,11 @@ void* list_find(list_t *list, void *label)
     return NULL;
 }
 
+/**
+ * Print all nodes contained in the linked list using the print function pointer given at
+ * the initialisation of the linked list.
+ * @param list pointer for the previously initialised linked list.
+ */
 void list_print(list_t *list)
 {
     list_node_t *current_node = list->head;

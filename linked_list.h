@@ -53,7 +53,7 @@
 
         printf("Length: %d\n", list_length(&list));
 
-        data_t *x = list_find(&list, (void*)2);
+        data_t *x = list_search(&list, (void*)2);
         if (x)
             printf("x: %d, y: %d, z: %c\n", x->x, x->y, x->z);
         else
@@ -103,7 +103,7 @@ void list_destroy(list_t *list);
 void list_prepend(list_t *list, void *data);
 void list_append(list_t *list, void *data);
 int list_length(list_t *list);
-void* list_find(list_t *list, void *label);
+void* list_search(list_t *list, void *label);
 void list_print(list_t *list);
 
 #endif /* _LINKED_LIST_H_ */
