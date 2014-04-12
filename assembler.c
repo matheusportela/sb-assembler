@@ -192,7 +192,7 @@ int assembler_first_pass(char *filename,
                  * TODO: This should execute the subroutine of the directive
                  * Update as soon as the directives table are implemented
                  */
-                position_counter += directive_ptr->size;
+                position_counter += directive_ptr->function();
             }
             else
             {
@@ -336,7 +336,7 @@ void assembler_second_pass(char *filename,
                 if(element_has_operand1(&elements))
                     compiled_program[position_counter] = atoi(elements.operand1);
                 
-                position_counter += instruction_size;
+                position_counter += directive_ptr->function();
             }
             else
             {
