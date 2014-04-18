@@ -13,9 +13,9 @@
  * @param filename the name of the file to be opened.
  * @return pointer to the opened file struct.
  */
-FILE* file_open(char *filename)
+FILE* file_open(char *filename, char *mode)
 {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, mode);
     
     if (!fp)
     {

@@ -34,7 +34,7 @@ void scan_line_elements(element_t *el, char *line)
     
     strcpy(copy_line, line);
     
-    token = strtok(copy_line," ,\t");
+    token = strtok(copy_line, " ,\t");
     while (token != NULL)
     {
         if (is_label(token))
@@ -63,7 +63,7 @@ void scan_line_elements(element_t *el, char *line)
                 exit(-1);
         }
         ++state;
-        token = strtok (NULL, " ,\t");
+        token = strtok(NULL, " ,\t");
     }
 }
 

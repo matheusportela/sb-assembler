@@ -50,6 +50,7 @@
 #include "symbols_table.h"
 #include "linked_list.h"
 #include "hash_table.h"
+#include "preprocessing.h"
 
 #define DEBUG 0
 
@@ -84,6 +85,9 @@ int main(int argc, char **argv)
     }
     
     filename = argv[1];
+    
+    preprocess(filename, "test_preprocessing.pre");
+    exit(0);
     
     /* Init all tables */
     symbols_table_init(&symbols_table);
@@ -143,7 +147,7 @@ int assembler_first_pass(char *filename,
     directive_t *directive_ptr;
     int position_counter = 0;
     
-    fp = file_open(filename);
+    fp = file_open(filename, "r");
     
     while(file_read_line(fp, line_buffer) != FILE_FINISHED)
     {
@@ -246,7 +250,7 @@ void assembler_second_pass(char *filename,
     for (i = 0; i < program_size; ++i)
         compiled_program[i] = 0;
     
-    fp = file_open(filename);
+    fp = file_open(filename, "r");
     
     while(file_read_line(fp, line_buffer) != FILE_FINISHED)
     {

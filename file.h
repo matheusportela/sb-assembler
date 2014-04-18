@@ -18,7 +18,7 @@
 #define FILE_LINE_LENGTH 120
 #define FILE_FINISHED -1
 
-FILE* file_open(char *filename);
+FILE* file_open(char *filename, char *mode);
 void file_print(FILE *fp);
 void file_close(FILE *fp);
 int file_read_line(FILE *fp, char line[]);
