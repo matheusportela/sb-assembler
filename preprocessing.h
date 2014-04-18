@@ -26,5 +26,6 @@
 
 void preprocess(char *filename, char *output);
 void remove_comments(char *line);
+int detect_directive(element_t *elements, char *line);
 
 #endif /* _PREPROCESSING_H_ */

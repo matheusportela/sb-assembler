@@ -23,14 +23,19 @@ void preprocess(char *filename, char *output)
         remove_comments(line_buffer);
         printf("%s", line_buffer);
         
-        scan_line_elements(&elements, line_buffer);
-        
-        if (strcmp(elements.operation, "IF") == 0)
-            printf("if directive found!\n");
-        if (strcmp(elements.operation, "EQU") == 0)
-            printf("equ directive found!\n");
+        switch (detect_directive(&elements, line_buffer))
+        {
+            case DIRECTIVE_IF_NUMBER:
+                printf("if directive found with operand %s!\n", elements.operand1);
+                break;
+            case DIRECTIVE_EQU_NUMBER:
+                printf("equ directive found with operand %s!\n", elements.operand1);
+                break;
+        }
         
         fprintf(fout, "%s", line_buffer);
+        
+        element_clear(&elements); /* So as one line does not interfere to the other */
     }
     
     file_close(fp);
@@ -52,4 +57,16 @@ void remove_comments(char *line)
                 return;
         }
     }
+}
+
+int detect_directive(element_t *elements, char *line)
+{
+    scan_line_elements(elements, line);
+    
+    if (strcmp(elements->operation, "IF") == 0)
+        return DIRECTIVE_IF_NUMBER;
+    else if (strcmp(elements->operation, "EQU") == 0)
+        return DIRECTIVE_EQU_NUMBER;
+    
+    return NO_DIRECTIVE;
 }
