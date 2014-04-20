@@ -29,5 +29,6 @@ void symbols_table_add(hash_table_t *symbols_table, char *label, int value)
     symbol_t *symbol = malloc(sizeof(symbol_t));
     
     symbol->value = value;
+    symbol->defined = 0;
     hash_insert(symbols_table, label, symbol);
 }

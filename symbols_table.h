@@ -14,6 +14,7 @@
 typedef struct
 {
     int value;
+    int defined;
 } symbol_t;
 
 void symbols_table_init(hash_table_t *symbols_table);

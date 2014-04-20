@@ -17,7 +17,7 @@ void instructions_table_init(hash_table_t *instructions_table)
     hash_create(instructions_table, "Instructions");
     instructions_table_add(instructions_table, "ADD", 2, 0x1);
     instructions_table_add(instructions_table, "SUB", 2, 0x2);
-    instructions_table_add(instructions_table, "MUL", 2, 0x3);
+    instructions_table_add(instructions_table, "MULT", 2, 0x3);
     instructions_table_add(instructions_table, "DIV", 2, 0x4);
     instructions_table_add(instructions_table, "JMP", 2, 0x5);
     instructions_table_add(instructions_table, "JMPN", 2, 0x6);
