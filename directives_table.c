@@ -17,6 +17,7 @@ void directives_table_init(hash_table_t *directives_table)
     hash_create(directives_table, "Directives");
     directives_table_add(directives_table, "SPACE", 1, directives_run_space);
     directives_table_add(directives_table, "CONST", 1, directives_run_const);
+    directives_table_add(directives_table, "SECTION", 1, NULL);
 }
 
 /**

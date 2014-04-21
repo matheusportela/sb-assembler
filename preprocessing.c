@@ -92,7 +92,7 @@ void preprocessing_second_pass(char *filename, char *output, hash_table_t *equat
             is_if = 1;
             
             /* Set flag if IF directive is evaluated as false */
-            if (!atoi(elements.operand1))
+            if (!strtol(elements.operand1, NULL, 0))
                 is_if_false = 1;
             
         }

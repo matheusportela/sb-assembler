@@ -1,5 +1,9 @@
 #include "assembler.h"
 
+#define SECTION_UNKNOWN 0
+#define SECTION_DATA 1
+#define SECTION_TEXT 2
+
 /**
  * Main function
  * Init all required tables, run passes, and free tables.
@@ -54,7 +58,9 @@ void assemble(char *input, char *output)
     symbol_t *symbol_ptr;
     instruction_t *instruction_ptr;
     directive_t *directive_ptr;
-    int previous_position, aux_position;
+    int previous_position;
+    int aux_position;
+    int section = SECTION_UNKNOWN;
     
     /* Initializing */
     init_tables(&symbols_table, &instructions_table, &directives_table);
@@ -157,13 +163,22 @@ void assemble(char *input, char *output)
         /* Generate code for directive */
         if ((directive_ptr = hash_search(&directives_table, elements.operation)))
         {
-            if (element_has_operand1(&elements))
+            if ((strcmp(elements.operation, "CONST") == 0) && element_has_operand1(&elements))
             {
                 object_file_add(&object_file, strtol(elements.operand1, NULL, 0));
             }
-            else
+            else if (strcmp(elements.operation, "SPACE") == 0)
             {
                 object_file_add(&object_file, 0); /* Initializing SPACE with zero value */
+            }
+            else if (strcmp(elements.operation, "SECTION") == 0)
+            {
+                if (strcmp(elements.operand1, "DATA") == 0)
+                    section = SECTION_DATA;
+                else if (strcmp(elements.operand1, "TEXT") == 0)
+                    section = SECTION_TEXT;
+                else
+                    section = SECTION_UNKNOWN;
             }
         }
         
