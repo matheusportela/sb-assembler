@@ -201,7 +201,7 @@ void assembler_second_pass(char *filename,
                  * Update as soon as the directives table are implemented
                  */
                 if(element_has_operand1(&elements))
-                    compiled_program[position_counter] = atoi(elements.operand1);
+                    compiled_program[position_counter] = strtol(elements.operand1, NULL, 0);
                 
                 position_counter += directive_ptr->function();
             }

@@ -159,7 +159,7 @@ void assemble(char *input, char *output)
         {
             if (element_has_operand1(&elements))
             {
-                object_file_add(&object_file, atoi(elements.operand1));
+                object_file_add(&object_file, strtol(elements.operand1, NULL, 0));
             }
             else
             {
