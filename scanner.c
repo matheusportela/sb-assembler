@@ -38,7 +38,18 @@ void scan_line_elements(element_t *el, char *line)
     while (token != NULL)
     {
         if (is_label(token))
-            state = SCANNER_STATE_LABEL;
+        {
+            if (is_valid_label(token))
+            {
+                state = SCANNER_STATE_LABEL;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR [scan_line_elements]: Not a valid label name \"%s\"\n",
+                        token);
+                exit(-1);
+            }
+        }
         
         sanitize_token_ending(token);
         
@@ -58,7 +69,7 @@ void scan_line_elements(element_t *el, char *line)
                 break;
             default:
                 /* TODO: Ignore? (May be a comment) */
-                fprintf(stderr, "ERROR: In get_line_elements: Not a valid state %d Last token: %s\n",
+                fprintf(stderr, "ERROR [scan_line_elements]: Not a valid state %d Last token: %s\n",
                         state, token);
                 exit(-1);
         }
@@ -133,6 +144,38 @@ int is_label(char *token)
     int token_size = strlen(token);
     char last_char = token[token_size - 1]; /* Ignoring \0 */
     return (last_char == ':');
+}
+
+/**
+ * Check whether a given token is has a valid label naming, which must be composed by
+ * characters 0-9, a-z, A-Z and _ (underscore).
+ * Label names cannot start with a number.
+ * @param token string pointer.
+ * @return 1 if token is a label or 0 otherwise.
+ */
+int is_valid_label(char *token)
+{
+    char c;
+    int i;
+    int token_size;
+    
+    /* Exit immediately if starts with a number */
+    if (token[0] >= '0' && token[0] <= '9')
+        return 0;
+    
+    token_size = strlen(token) - 1; /* Ignoring the ':' character of a label */
+    
+    for (i = 0; i < token_size; ++i)
+    {
+        c = token[i];
+        if (!((c >= '0' && c <= '9') ||
+              (c >= 'a' && c <= 'z') ||
+              (c >= 'A' && c <= 'Z') ||
+              (c == '_')))
+              return 0;
+    }
+    
+    return 1;
 }
 
 /**

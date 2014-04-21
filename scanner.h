@@ -33,6 +33,7 @@ void sanitize_token_ending(char *token);
 int is_separator(char c);
 int is_end_of_line(char c);
 int is_label(char *token);
+int is_valid_label(char *token);
 int is_number(char *token);
 
 #endif /* _SCANNER_H_ */
