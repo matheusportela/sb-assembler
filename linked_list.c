@@ -19,16 +19,10 @@ void list_create(list_t *list, int data_size, compare_function compare_fn,
                  print_function print_fn)
 {
     if (data_size <= 0)
-    {
-        fprintf(stderr, "ERROR (linked list): Element size must be larger than 0\n");
-        exit(-1);
-    }
+        error(ERROR_LINKED_LIST, "Element size must be larger than 0");
     
     if (!compare_fn)
-    {
-        fprintf(stderr, "ERROR (linked list): Must provide a function to compare data\n");
-        exit(-1);
-    }
+        error(ERROR_LINKED_LIST, "Must provide a function to compare data");
     
     list->length = 0;
     list->data_size = data_size;

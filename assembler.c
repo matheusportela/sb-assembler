@@ -46,10 +46,7 @@ int assembler_first_pass(char *filename,
         if (element_has_label(&elements))
         {
             if (hash_search(symbols_table, elements.label))
-            {
-                fprintf(stderr, "ERROR: Redefined label: %s\n", elements.label);
-                exit(-1);
-            }
+                error(ERROR_SEMANTIC, "Redefined label: %s", elements.label);
     
             symbols_table_add(symbols_table, elements.label, position_counter);
         }
@@ -76,8 +73,7 @@ int assembler_first_pass(char *filename,
             }
             else
             {
-                fprintf(stderr, "ERROR: Operation %s not valid\n", elements.operation);
-                exit(-1);
+                error(ERROR_LEXICAL, "Operation %s not valid", elements.operation);
             }
         }
         
@@ -138,16 +134,14 @@ void assembler_second_pass(char *filename,
             && (!hash_search(symbols_table, elements.operand1))
             && (!is_number(elements.operand1)))
         {
-            fprintf(stderr, "ERROR: Undefined operand: %s\n", elements.operand1);
-            exit(-1);
+            error(ERROR_SEMANTIC, "Undefined operand: %s", elements.operand1);
         }
         
         if (element_has_operand2(&elements)
             && (!hash_search(symbols_table, elements.operand2))
             && (!is_number(elements.operand2)))
         {
-            fprintf(stderr, "ERROR: Undefined operand: %s\n", elements.operand2);
-            exit(-1);
+            error(ERROR_SEMANTIC, "Undefined operand: %s", elements.operand2);
         }
         
         /*
@@ -180,11 +174,9 @@ void assembler_second_pass(char *filename,
             }
             else
             {
-                fprintf(stderr, "ERROR: Wrong number of operands "
-                                "(it is %d but should be %d)\n",
-                        element_count_operands(&elements),
-                        (instruction_ptr->size - 1));
-                exit(-1);
+                error(ERROR_SYNTACTIC, "Wrong number of operands "
+                      "(it is %d but should be %d)", element_count_operands(&elements),
+                      (instruction_ptr->size - 1));
             }
             
             position_counter += instruction_size;
@@ -207,8 +199,7 @@ void assembler_second_pass(char *filename,
             }
             else
             {
-                fprintf(stderr, "ERROR: Operation %s not valid\n", elements.operation);
-                exit(-1);
+                error(ERROR_LEXICAL, "Operation %s not valid", elements.operation);
             }
         }
         

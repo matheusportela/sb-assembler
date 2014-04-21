@@ -17,6 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "elements.h"
+#include "error.h"
 
 #define TOKEN_BUFFER_SIZE 100
 

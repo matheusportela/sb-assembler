@@ -64,11 +64,10 @@ void object_file_add(object_file_t *object_ptr, obj_t value)
 void object_file_insert(object_file_t *object_ptr, int position, obj_t value)
 {
     if (position >= object_ptr->size)
-    {
-        fprintf(stderr, "ERROR [object_file]: Trying to insert element at an invalid position\n");
-        fprintf(stderr, "Object file size: %d\tPosition: %d\n", object_ptr->size, position);
-        exit(-1);
-    }
+        error(ERROR_OBJECT_FILE, "ERROR [object_file]: Trying to insert element at an "
+                                 "invalid position\n"
+                                 "Object file size: %d\tPosition: %d\n",
+                                 object_ptr->size, position);
     
     object_ptr->program[position] = value;
 }

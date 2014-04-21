@@ -34,7 +34,7 @@ void object_file_read(char *filename, object_file_t *object_ptr)
     
     printf("\n===== %s =====\n\n", filename);
     for (i = 0; i < object_ptr->size; ++i)
-        printf("%d: %d\n", i, object_ptr->program[i]);
+        printf("(addr. %d): %d\n", i, object_ptr->program[i]);
     printf("\n==========\n");
     
     fclose(fp);

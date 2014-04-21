@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "error.h"
 
 #define FILE_LINE_LENGTH 500
 #define FILE_FINISHED -1

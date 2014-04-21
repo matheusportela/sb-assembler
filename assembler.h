@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
 #include "file.h"
 #include "object_file.h"
 #include "elements.h"

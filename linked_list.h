@@ -73,6 +73,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "error.h"
 
 /* a common function used to compare data objects */
 typedef int (*compare_function)(void *, void *);

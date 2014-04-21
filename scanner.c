@@ -38,18 +38,7 @@ void scan_line_elements(element_t *el, char *line)
     while (token != NULL)
     {
         if (is_label(token))
-        {
-            if (is_valid_label(token))
-            {
-                state = SCANNER_STATE_LABEL;
-            }
-            else
-            {
-                fprintf(stderr, "ERROR [scan_line_elements]: Not a valid label name \"%s\"\n",
-                        token);
-                exit(-1);
-            }
-        }
+            state = SCANNER_STATE_LABEL;
         
         sanitize_token_ending(token);
         
@@ -69,9 +58,7 @@ void scan_line_elements(element_t *el, char *line)
                 break;
             default:
                 /* TODO: Ignore? (May be a comment) */
-                fprintf(stderr, "ERROR [scan_line_elements]: Not a valid state %d Last token: %s\n",
-                        state, token);
-                exit(-1);
+                error(ERROR_SCANNER, "Not a valid state %d Last token: %s", state, token);
         }
         ++state;
         token = strtok(NULL, " ,\t");

@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "error.h"
 #include "file.h"
 
 /* Object file has one byte elements */
