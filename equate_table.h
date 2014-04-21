@@ -11,7 +11,7 @@
 
 #include "hash_table.h"
 
-#define EQUATE_VALUE_SIZE 20
+#define EQUATE_VALUE_SIZE 100
 
 typedef struct
 {

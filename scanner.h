@@ -18,7 +18,7 @@
 #include <ctype.h>
 #include "elements.h"
 
-#define TOKEN_BUFFER_SIZE 120
+#define TOKEN_BUFFER_SIZE 100
 
 typedef enum
 {

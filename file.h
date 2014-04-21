@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FILE_LINE_LENGTH 120
+#define FILE_LINE_LENGTH 500
 #define FILE_FINISHED -1
 
 FILE* file_open(char *filename, char *mode);
