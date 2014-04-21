@@ -33,5 +33,6 @@ void preprocessing_second_pass(char *filename, char *output, hash_table_t *equat
 void remove_comments(char *line);
 int detect_directive(element_t *elements, char *line);
 void replace(char *str, char *old, char *new);
+void to_uppercase(char *token);
 
 #endif /* _PREPROCESSING_H_ */

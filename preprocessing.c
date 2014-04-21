@@ -36,6 +36,9 @@ void preprocessing_first_pass(char *filename, hash_table_t *equate_table)
     {
         remove_comments(line_buffer);
         
+        /* Make it case insensitive by forcing everything to uppercase */
+        to_uppercase(line_buffer);
+        
         if (detect_directive(&elements, line_buffer) == DIRECTIVE_EQU_NUMBER)
             equate_table_add(equate_table, elements.label, elements.operand1);
         
@@ -64,6 +67,9 @@ void preprocessing_second_pass(char *filename, char *output, hash_table_t *equat
     while(file_read_line(fp, line_buffer) != FILE_FINISHED)
     {
         remove_comments(line_buffer);
+        
+        /* Make it case insensitive by forcing everything to uppercase */
+        to_uppercase(line_buffer);
         
         /* Replace EQU directives */
         scan_line_elements(&elements, line_buffer);
@@ -196,4 +202,15 @@ void replace(char *str, char *old, char *new)
     
     strcpy(r, p);
     strcpy(str, ret);
+}
+
+/**
+ * Convert a string to uppercase.
+ * @param token String to be converted
+ */
+void to_uppercase(char *token)
+{
+    int i;
+    for (i = 0; token[i] != '\0'; ++i)
+        token[i] = toupper(token[i]);
 }
