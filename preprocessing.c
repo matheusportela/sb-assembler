@@ -12,6 +12,8 @@ void preprocess(char *filename, char *output)
 {
     hash_table_t equate_table;
     
+    printf("===== Pre-processing =====\n");
+    
     /* Init all tables */
     equate_table_init(&equate_table);
     

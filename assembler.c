@@ -3,214 +3,340 @@
  * @author Matheus Vieira Portela
  * @date   06/04/2014
  *
- * @brief  Two-pass assembler for educational assembly language
+ * @brief  One-pass assembler for educational assembly language
  */
 
 #include "assembler.h"
 
 /**
- * First-pass algorithm
- * It checks the declaration of each label, including them to the symbols table, given an
- * error when a label is redefined.
- * Also, it checks if all operations are present in the language, given an error if they
- * do not exist.
- * @param filename the name of the file that is being assembled.
- * @param symbols_table table structure that holds all labels and the address of its
- *                        declaration
- * @param instructions_table structure that holds all instructions and their size
- * @param directives_table structure that holds all directives
- * @return The size of the assembled program
+ * Evaluate a given label.
+ * @param label Given label for evaluation.
+ * @param symbols_table Tables containing all symbols defined so far.
+ * @param object_file_ptr Pointer to the object file.
+ * @param line_number Number of the current line in the source file.
  */
-int assembler_first_pass(char *filename,
-                         hash_table_t *symbols_table,
-                         hash_table_t *instructions_table,
-                         hash_table_t *directives_table)
+void evaluate_label(char *label, hash_table_t *symbols_table,
+                    object_file_t *object_file_ptr, int line_number)
 {
-    FILE *fp;
-    char line_buffer[FILE_LINE_LENGTH];
-    element_t elements;
-    instruction_t *instruction_ptr;
-    directive_t *directive_ptr;
-    int position_counter = 0;
+    symbol_t *symbol_ptr;
+    int previous_position;
+    int aux_position;
+
+    /* Label analysis */
+    if (!is_valid_label(label))
+        error_at_line(ERROR_LEXICAL, line_number, "\"%s\" is not a valid label name",
+                      label);
     
-    fp = file_open(filename, "r");
-    
-    while(file_read_line(fp, line_buffer) != FILE_FINISHED)
+    /* Label not in the table yet */
+    if (!(symbol_ptr = hash_search(symbols_table, label)))
     {
-        scan_line_elements(&elements, line_buffer);
-        
-        /*
-         * Looks for label in the symbols table.
-         * Gives error if it was already defined
-         */
-        if (element_has_label(&elements))
+        symbols_table_add(symbols_table, label, object_file_ptr->size, line_number);
+        symbol_ptr = hash_search(symbols_table, label);
+        symbol_ptr->defined = 1;
+    }
+    else
+    {
+        /* Label already in the table and defined */
+        if (symbol_ptr->defined)
         {
-            if (hash_search(symbols_table, elements.label))
-                error(ERROR_SEMANTIC, "Redefined label: %s", elements.label);
-    
-            symbols_table_add(symbols_table, elements.label, position_counter);
+            error_at_line(ERROR_SEMANTIC, line_number, "Redefined label \"%s\"", label);
         }
-        
-        /*
-         * Looks for operation in the operations table or directives table.
-         * Gives error if it is not defined in the language or as a proper directive
-         */
-        instruction_ptr = hash_search(instructions_table, elements.operation);
-        if (instruction_ptr)
-        {
-            position_counter += instruction_ptr->size;
-        }
+        /* Label already in the table but being defined now */
         else
         {
-            directive_ptr = hash_search(directives_table, elements.operation);
-            if (directive_ptr)
+            symbol_ptr->defined = 1;
+        
+            previous_position = symbol_ptr->value;
+            symbol_ptr->value = object_file_ptr->size;
+        
+            /* Replace previous definitions */
+            while (previous_position != -1)
             {
-                /*
-                 * TODO: This should execute the subroutine of the directive
-                 * Update as soon as the directives table are implemented
-                 */
-                position_counter += directive_ptr->function();
-            }
-            else
-            {
-                error(ERROR_LEXICAL, "Operation %s not valid", elements.operation);
+                aux_position = object_file_get(*object_file_ptr, previous_position);
+                object_file_insert(object_file_ptr, previous_position, symbol_ptr->value);
+                previous_position = aux_position;
             }
         }
-        
-        element_clear(&elements); /* So as one line does not interfere to the other */
     }
-    
-    file_close(fp);
-    
-    return position_counter;
 }
 
 /**
- * Second-pass algorithm
- * It checks the consistency of each operand, i.e., if they are labels, should be
- * previously defined. Otherwise, it raises an error message.
- * Also, it checks if all operations are valid and have the right number of operands.
- * Finally, it generates the compiled program in object code.
- * @param filename the name of the file that is being assembled.
- * @param symbols_table table structure that holds all labels and the address of its
- *                        declaration
- * @param instructions_table structure that holds all instructions and their size
- * @param opcodes_table structure that holds all instructions opcodes
- * @param directives_table structure that holds all directives
- * @return The size of the assembled program
+ * Check whether a instruction is valid and evaluate
+ * @return the instruction size if it is a valid instruction, 0 otherwise
  */
-void assembler_second_pass(char *filename,
-                           hash_table_t *symbols_table,
-                           hash_table_t *instructions_table,
-                           hash_table_t *directives_table,
-                           const int program_size)
+int evaluate_instruction(char *instruction, hash_table_t *instructions_table,
+                         section_t section, int line_number, object_file_t *object_file)
 {
-    FILE *fp;
-    char line_buffer[FILE_LINE_LENGTH];
-    element_t elements;
     instruction_t *instruction_ptr;
-    directive_t *directive_ptr;
-    symbol_t *symbol_ptr;
-    int i;
-    int position_counter = 0;
-    int compiled_program[program_size];
-    int instruction_size;
-    
-    for (i = 0; i < program_size; ++i)
-        compiled_program[i] = 0;
-    
-    fp = file_open(filename, "r");
-    
-    while(file_read_line(fp, line_buffer) != FILE_FINISHED)
+
+    if ((instruction_ptr = hash_search(instructions_table, instruction)))
     {
-        scan_line_elements(&elements, line_buffer);
-        
-        /*
-         * Looks for the operands in the symbols table
-         * Gives error if it was not previously defined
-         * Numbers are not symbols, so they should be ignored
-         */
-        if (element_has_operand1(&elements)
-            && (!hash_search(symbols_table, elements.operand1))
-            && (!is_number(elements.operand1)))
+        if (section == SECTION_DATA)
+            error_at_line(ERROR_SEMANTIC, line_number, "Using instruction \"%s\" in "
+                          "the data section", instruction);
+    
+        object_file_add(object_file, instruction_ptr->opcode);
+    
+        return instruction_ptr->size;
+    }
+    
+    return 0;
+}
+
+void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
+                       hash_table_t *symbols_table, object_file_t *object_file,
+                       int line_number)
+{
+    symbol_t *symbol_ptr;
+    
+    if (instruction_size == 1)
+        error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" does "
+                      "not accept arguments", instruction);
+
+    if (!(symbol_ptr = hash_search(symbols_table, operand1)))
+    {
+        symbols_table_add(symbols_table, operand1, object_file->size, line_number);
+        object_file_add(object_file, -1);
+    }
+    else
+    {
+        if (symbol_ptr->defined)
         {
-            error(ERROR_SEMANTIC, "Undefined operand: %s", elements.operand1);
-        }
-        
-        if (element_has_operand2(&elements)
-            && (!hash_search(symbols_table, elements.operand2))
-            && (!is_number(elements.operand2)))
-        {
-            error(ERROR_SEMANTIC, "Undefined operand: %s", elements.operand2);
-        }
-        
-        /*
-         * Looks for operation in the operations table or directives table
-         * Gives error if it has a wrong number of operands or as a proper directive
-         */
-        instruction_ptr = hash_search(instructions_table, elements.operation);
-        if (instruction_ptr)
-        {
-            instruction_size = instruction_ptr->size;
-        
-            if ((instruction_size - 1) == element_count_operands(&elements))
-            {
-                /*
-                 * Generates object-code OPERATION OPERAND1 OPERAND2
-                 */
-                compiled_program[position_counter] = instruction_ptr->opcode;
-                
-                if(element_has_operand1(&elements))
-                {
-                    symbol_ptr = hash_search(symbols_table, elements.operand1);
-                    compiled_program[position_counter + 1] = symbol_ptr->value;
-                }
-                
-                if(element_has_operand2(&elements))
-                {
-                    symbol_ptr = hash_search(symbols_table, elements.operand2);
-                    compiled_program[position_counter + 2] = symbol_ptr->value;
-                }
-            }
-            else
-            {
-                error(ERROR_SYNTACTIC, "Wrong number of operands "
-                      "(it is %d but should be %d)", element_count_operands(&elements),
-                      (instruction_ptr->size - 1));
-            }
-            
-            position_counter += instruction_size;
+            object_file_add(object_file, symbol_ptr->value);
         }
         else
         {
-            directive_ptr = hash_search(directives_table, elements.operation);
-            if (directive_ptr)
+            object_file_add(object_file, symbol_ptr->value);
+            symbol_ptr->value = object_file->size - 1;
+        }
+    }
+}
+
+void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
+                       hash_table_t *symbols_table, object_file_t *object_file,
+                       int line_number)
+{
+    symbol_t *symbol_ptr;
+    
+    if (instruction_size == 2)
+        error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" only "
+                      "accepts one argument", instruction);
+    
+    if (!(symbol_ptr = hash_search(symbols_table, operand2)))
+    {
+        symbols_table_add(symbols_table, operand2, object_file->size, line_number);
+        object_file_add(object_file, -1);
+    }
+    else
+    {
+        if (symbol_ptr->defined)
+        {
+            object_file_add(object_file, symbol_ptr->value);
+        }
+        else
+        {
+            object_file_add(object_file, symbol_ptr->value);
+            symbol_ptr->value = object_file->size - 1;
+        }
+    }
+}
+
+int evaluate_directive(char *directive, element_t *elements,
+                       hash_table_t *directives_table, section_t *section,
+                       int *is_data_section_defined, int *is_text_section_defined,
+                       int line_number, object_file_t *object_file)
+{
+    directive_t *directive_ptr;
+    
+    /* Generate code for directive */
+    if ((directive_ptr = hash_search(directives_table, directive)))
+    {
+        if (strcmp(directive, "CONST") == 0)
+        {
+            if ((*section) == SECTION_TEXT)
+                error_at_line(ERROR_SEMANTIC, line_number, "Using directive \"%s\" "
+                              "int the data section", directive);
+        
+            if (element_has_operand1(elements))
+                object_file_add(object_file, strtol(elements->operand1, NULL, 0));
+            else
+                error_at_line(ERROR_SYNTACTIC, line_number, "CONST directive requires "
+                              "one argument");
+            
+            if (element_has_operand2(elements))
+                error_at_line(ERROR_SYNTACTIC, line_number, "CONST directive accepts "
+                              "only one argument");
+        }
+        else if (strcmp(directive, "SPACE") == 0)
+        {
+            if ((*section) == SECTION_TEXT)
+                error_at_line(ERROR_SEMANTIC, line_number, "Using directive \"%s\" "
+                              "int the data section", directive);
+        
+            object_file_add(object_file, 0); /* Initializing SPACE with zero value */
+        }
+        else if (strcmp(directive, "SECTION") == 0)
+        {
+            if (strcmp(elements->operand1, "DATA") == 0)
             {
-                instruction_size = directive_ptr->size;
+                if ((*is_data_section_defined) && (*is_text_section_defined))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Section \"%s\" is "
+                                  "already defined", elements->operand1);
                 
-                /*
-                 * TODO: This should execute the subroutine of the directive
-                 * Update as soon as the directives table are implemented
-                 */
-                if(element_has_operand1(&elements))
-                    compiled_program[position_counter] = strtol(elements.operand1, NULL, 0);
+                *is_data_section_defined = 1;
+                *section = SECTION_DATA;
+            }
+            else if (strcmp(elements->operand1, "TEXT") == 0)
+            {
+                if ((*is_data_section_defined) && (*is_text_section_defined))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Section \"%s\" is "
+                                  "already defined", elements->operand1);
                 
-                position_counter += directive_ptr->function();
+                *is_text_section_defined = 1;
+                *section = SECTION_TEXT;
             }
             else
             {
-                error(ERROR_LEXICAL, "Operation %s not valid", elements.operation);
+                error_at_line(ERROR_SYNTACTIC, line_number, "Unknown section directive "
+                              "\"%s\"", elements->operand1);
             }
+            
+            if (element_has_operand2(elements))
+                error_at_line(ERROR_SYNTACTIC, line_number, "SECTION directive accepts "
+                              "only one argument");
         }
         
-        element_clear(&elements); /* So as one line does not interfere to the other */
-        
-        /* Print the object code line for visualization purposes */
-        printf("(addr. %d)", (position_counter - instruction_size));
-        for (i = instruction_size; i > 0; --i)
-            printf(" %d", compiled_program[position_counter - i]);
-        printf("\n");
+        return 1;
     }
     
+    return 0;
+}
+
+void check_undefined_labels(hash_table_t *symbols_table)
+{
+    hash_list_node_t *hash_list_node_ptr;
+    char *label_ptr;
+    int line_number;
+    
+    if ((hash_list_node_ptr = symbols_table_has_undefined(symbols_table)))
+    {
+        label_ptr = hash_list_node_ptr->key;
+        line_number = ((symbol_t*)hash_list_node_ptr->data)->line_number;
+        error_at_line(ERROR_SEMANTIC, line_number, "Undefined label \"%s\"", label_ptr);
+    }
+}
+
+void assemble(char *input, char *output)
+{
+    FILE *fp;
+    hash_table_t symbols_table;
+    hash_table_t instructions_table;
+    hash_table_t directives_table;
+    object_file_t object_file;
+    element_t elements;
+    char line_buffer[FILE_LINE_LENGTH];
+    section_t section = SECTION_UNKNOWN;
+    int line_number = 0;
+    int instruction_size;
+    int is_instruction = 0;
+    int is_directive = 0;
+    int is_data_section_defined = 0;
+    int is_text_section_defined = 0;
+    
+    /* Initializing */
+    init_tables(&symbols_table, &instructions_table, &directives_table);
+    object_file_init(&object_file);
+    element_init(&elements); /* Avoid garbage values at the label field */
+    fp = file_open(input, "r");
+    
+    /* Assembling */
+    printf("===== Assembling =====\n");
+    
+    printf("=== Parsing ===\n");
+    while (file_read_line(fp, line_buffer) != FILE_FINISHED)
+    {
+        is_instruction = 0;
+        is_directive = 0;
+        line_number += 1;
+        
+        /* Scanning */
+        scan_line_elements(&elements, line_buffer);
+        printf("%15.15s | %15.15s | %15.15s | %15.15s\n", elements.label,
+               elements.operation, elements.operand1, elements.operand2);
+        
+        /* Label analysis */
+        if (element_has_label(&elements))
+            evaluate_label(elements.label, &symbols_table, &object_file, line_number);
+        
+        /* Check operation */
+        if (element_has_operation(&elements))
+        {
+            /* Generate code for instruction */
+            instruction_size = evaluate_instruction(elements.operation,
+                                                    &instructions_table,
+                                                    section, line_number, &object_file);
+                  
+            if (instruction_size > 0)
+            {
+                is_instruction = 1;
+        
+                /* Generate code for labels in operands */
+                if (element_has_operand1(&elements))
+                    evaluate_operand1(elements.operation, elements.operand1,
+                                      instruction_size, &symbols_table, &object_file,
+                                      line_number);
+                
+                if (element_has_operand2(&elements))
+                    evaluate_operand2(elements.operation, elements.operand2,
+                                      instruction_size, &symbols_table, &object_file,
+                                      line_number);
+            }
+            /* Generate code for directive */
+            else
+            {
+                is_directive = evaluate_directive(elements.operation, &elements,
+                                                  &directives_table, &section,
+                                                  &is_data_section_defined,
+                                                  &is_text_section_defined,
+                                                  line_number, &object_file);
+            }
+        }   
+        
+        /* Check for invalid instructions or directives */
+        if ((element_has_operation(&elements)) && (!is_instruction) && (!is_directive))
+            error_at_line(ERROR_LEXICAL, line_number, "\"%s\" is not a valid instruction "
+                          "or directive", elements.operation);
+        
+        element_clear(&elements); /* So as one line does not interfere to the other */
+    }
+    
+    /* Check for undefined labels */
+    check_undefined_labels(&symbols_table);
+    
+    /* Printing */
+    object_file_print(object_file);
+    
+    /* Writing */
+    object_file_write(output, object_file);
+    
+    /* Finishing */
+    object_file_destroy(&object_file);
+    destroy_tables(&symbols_table, &instructions_table, &directives_table);
     file_close(fp);
+}
+
+void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
+                 hash_table_t *directives_table)
+{
+    symbols_table_init(symbols_table);
+    instructions_table_init(instructions_table);
+    directives_table_init(directives_table);
+}
+
+void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
+                    hash_table_t *directives_table)
+{
+    hash_destroy(symbols_table);
+    hash_destroy(instructions_table);
+    hash_destroy(directives_table);
 }
