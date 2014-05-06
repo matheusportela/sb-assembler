@@ -98,6 +98,10 @@ int evaluate_instruction(char *instruction, char *operand1, char *operand2,
             write_list[*write_num].line_number = line_number;
             ++(*write_num);
         }
+        else if ((strcmp(instruction, "DIV") == 0) && (strcmp(operand1, "0")))
+        {
+            error_at_line(ERROR_SEMANTIC, line_number, "Dividing by zero");
+        }
     
         return instruction_ptr->size;
     }
@@ -105,7 +109,7 @@ int evaluate_instruction(char *instruction, char *operand1, char *operand2,
     return 0;
 }
 
-int process_operand(char *output, char *label)
+int process_operand(char *output, char *label, int line_number)
 {
     int i;
     int label_size = strlen(label);
@@ -122,7 +126,6 @@ int process_operand(char *output, char *label)
         {
             output[i] = '\0';
             is_copying = 1;
-            printf("Processed operand: %s\n", output);
             continue;
         }
         
@@ -135,14 +138,13 @@ int process_operand(char *output, char *label)
         if (label[i] == ']')
         {
             offset = strtol(num_str, NULL, 0);
-            printf("Offset: %d\n", offset);
             return offset;
         }
     }
     
     /* Only reaches here when there is no closure ']'*/
     if (is_copying)
-        return -1; /* ERROR signal */
+        error_at_line(ERROR_SYNTACTIC, line_number, "Missing closing ']'");
     
     return 0; /* Not an array */
 }
@@ -160,7 +162,7 @@ void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
                       "not accept arguments", instruction);
     
     /* Label accessing array memory using the format LABEL[x] */
-    offset = process_operand(processed_operand, operand1);
+    offset = process_operand(processed_operand, operand1, line_number);
     
     if (!(symbol_ptr = hash_search(symbols_table, processed_operand)))
     {
@@ -194,7 +196,7 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
                       "accepts one argument", instruction);
     
     /* Label accessing array memory using the format LABEL[x] */
-    offset = process_operand(processed_operand, operand2);
+    offset = process_operand(processed_operand, operand2, line_number);
     
     if (!(symbol_ptr = hash_search(symbols_table, processed_operand)))
     {
@@ -233,7 +235,7 @@ int evaluate_directive(char *directive, element_t *elements,
         {
             if ((*section) == SECTION_TEXT)
                 error_at_line(ERROR_SEMANTIC, line_number, "Using directive \"%s\" "
-                              "int the data section", directive);
+                              "in the data section", directive);
         
             if (element_has_operand1(elements))
                 object_file_add(object_file, strtol(elements->operand1, NULL, 0));
@@ -252,7 +254,7 @@ int evaluate_directive(char *directive, element_t *elements,
         {
             if ((*section) == SECTION_TEXT)
                 error_at_line(ERROR_SEMANTIC, line_number, "Using directive \"%s\" "
-                              "int the data section", directive);
+                              "in the data section", directive);
             
             /* Reserve one space by default or the number defined with the parameter */
             if (element_has_operand1(elements))
@@ -323,7 +325,7 @@ void check_writing_at_const(hash_table_t *constants_table, write_t *write_list, 
     {
         if ((constant = hash_search(constants_table, write_list[i].label)))
         {
-            error_at_line(ERROR_MEMORY, write_list[i].line_number, "Cannot write to the "
+            error_at_line(ERROR_SEMANTIC, write_list[i].line_number, "Cannot write to the "
                           "constant label %s", write_list[i].label);
         }
     }

@@ -82,6 +82,7 @@ int evaluate_instruction(char *instruction, char *operand1, char *operand2,
                          hash_table_t *instructions_table, section_t section,
                          int line_number, object_file_t *object_file, write_t *write_list,
                          int *write_num);
+int process_operand(char *output, char *label, int line_number);
 void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number);
