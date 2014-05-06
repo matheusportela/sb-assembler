@@ -15,7 +15,7 @@
  * @param object_file_ptr Pointer to the object file.
  * @param line_number Number of the current line in the source file.
  */
-void evaluate_label(char *label, hash_table_t *symbols_table,
+void evaluate_label(char *label, hash_table_t *symbols_table, int is_data_section_defined,
                     object_file_t *object_file_ptr, int line_number)
 {
     symbol_t *symbol_ptr;
@@ -53,6 +53,13 @@ void evaluate_label(char *label, hash_table_t *symbols_table,
             /* Replace previous definitions */
             while (previous_position != -1)
             {
+                if (object_file_get(*object_file_ptr, previous_position-1) == 0x5)
+                {
+                    printf("JUMPING to %s\n", label);
+                    if (symbol_ptr->value >= is_data_section_defined)
+                        error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
+                }
+                
                 aux_position = object_file_get(*object_file_ptr, previous_position);
                 offset = object_file_get_offset(*object_file_ptr, previous_position);
                 
@@ -273,7 +280,7 @@ int evaluate_directive(char *directive, element_t *elements,
                     error_at_line(ERROR_SEMANTIC, line_number, "Section \"%s\" is "
                                   "already defined", elements->operand1);
                 
-                *is_data_section_defined = 1;
+                *is_data_section_defined = object_file->size;
                 *section = SECTION_DATA;
             }
             else if (strcmp(elements->operand1, "TEXT") == 0)
@@ -282,7 +289,7 @@ int evaluate_directive(char *directive, element_t *elements,
                     error_at_line(ERROR_SEMANTIC, line_number, "Section \"%s\" is "
                                   "already defined", elements->operand1);
                 
-                *is_text_section_defined = 1;
+                *is_text_section_defined = object_file->size;
                 *section = SECTION_TEXT;
             }
             else
@@ -350,8 +357,11 @@ void assemble(char *input, char *output)
     
     /* Used for writing at constant memory checking */
     hash_table_t constants_table;
-    write_t write_list[100];
+    write_t write_list[100]; /* TODO: Change to dynamically allocated list */
     int write_num = 0;
+    
+    /* Use for jumping at data section checking */
+    int farthest_jump = 0;
     
     /* Initializing */
     init_tables(&symbols_table, &instructions_table, &directives_table, &constants_table);
@@ -376,7 +386,7 @@ void assemble(char *input, char *output)
         
         /* Label analysis */
         if (element_has_label(&elements))
-            evaluate_label(elements.label, &symbols_table, &object_file, line_number);
+            evaluate_label(elements.label, &symbols_table, is_data_section_defined, &object_file, line_number);
         
         /* Check operation */
         if (element_has_operation(&elements))
