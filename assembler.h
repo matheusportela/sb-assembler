@@ -61,6 +61,16 @@ typedef enum
     SECTION_TEXT,
 } section_t;
 
+typedef struct
+{
+    char label[100];
+    int line_number;
+} write_t;
+
+typedef struct
+{
+} const_t;
+
 void assemble(char *input, char *output);
 void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
                  hash_table_t *directives_table);
@@ -68,8 +78,10 @@ void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_tabl
                     hash_table_t *directives_table);
 void evaluate_label(char *label, hash_table_t *symbols_table,
                     object_file_t *object_file_ptr, int line_number);
-int evaluate_instruction(char *instruction, hash_table_t *instructions_table,
-                         section_t section, int line_number, object_file_t *object_file);
+int evaluate_instruction(char *instruction, char *operand1, char *operand2,
+                         hash_table_t *instructions_table, section_t section,
+                         int line_number, object_file_t *object_file, write_t *write_list,
+                         int *write_num);
 void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number);
@@ -77,7 +89,9 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number);
 int evaluate_directive(char *directive, element_t *elements,
-                       hash_table_t *directives_table, section_t *section,
-                       int *is_data_section_defined, int *is_text_section_defined,
-                       int line_number, object_file_t *object_file);
+                       hash_table_t *directives_table, hash_table_t *constants_table,
+                       section_t *section, int *is_data_section_defined,
+                       int *is_text_section_defined, int line_number,
+                       object_file_t *object_file);
 void check_undefined_labels(hash_table_t *symbols_table);
+void check_writing_at_const(hash_table_t *constants_table, write_t *write_list, int write_num);

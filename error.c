@@ -85,5 +85,8 @@ void print_error_type(error_t error_type)
         case ERROR_SEMANTIC:
             fprintf(stderr, "semantic");
             break;
+        case ERROR_MEMORY:
+            fprintf(stderr, "memory");
+            break;
     }
 }

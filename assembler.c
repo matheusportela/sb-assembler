@@ -64,8 +64,10 @@ void evaluate_label(char *label, hash_table_t *symbols_table,
  * Check whether a instruction is valid and evaluate
  * @return the instruction size if it is a valid instruction, 0 otherwise
  */
-int evaluate_instruction(char *instruction, hash_table_t *instructions_table,
-                         section_t section, int line_number, object_file_t *object_file)
+int evaluate_instruction(char *instruction, char *operand1, char *operand2,
+                         hash_table_t *instructions_table, section_t section,
+                         int line_number, object_file_t *object_file, write_t *write_list,
+                         int *write_num)
 {
     instruction_t *instruction_ptr;
 
@@ -76,6 +78,20 @@ int evaluate_instruction(char *instruction, hash_table_t *instructions_table,
                           "the data section", instruction);
     
         object_file_add(object_file, instruction_ptr->opcode);
+        
+        /* For later checking whether writing in const memory */
+        if ((strcmp(instruction, "STORE") == 0) || (strcmp(instruction, "INPUT") == 0))
+        {
+            strcpy(write_list[*write_num].label, operand1);
+            write_list[*write_num].line_number = line_number;
+            ++(*write_num);
+        }
+        else if (strcmp(instruction, "COPY") == 0)
+        {
+            strcpy(write_list[*write_num].label, operand2);
+            write_list[*write_num].line_number = line_number;
+            ++(*write_num);
+        }
     
         return instruction_ptr->size;
     }
@@ -142,11 +158,13 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
 }
 
 int evaluate_directive(char *directive, element_t *elements,
-                       hash_table_t *directives_table, section_t *section,
-                       int *is_data_section_defined, int *is_text_section_defined,
-                       int line_number, object_file_t *object_file)
+                       hash_table_t *directives_table, hash_table_t *constants_table,
+                       section_t *section, int *is_data_section_defined,
+                       int *is_text_section_defined, int line_number,
+                       object_file_t *object_file)
 {
     directive_t *directive_ptr;
+    const_t *constant;
     
     /* Generate code for directive */
     if ((directive_ptr = hash_search(directives_table, directive)))
@@ -166,6 +184,9 @@ int evaluate_directive(char *directive, element_t *elements,
             if (element_has_operand2(elements))
                 error_at_line(ERROR_SYNTACTIC, line_number, "CONST directive accepts "
                               "only one argument");
+            
+            constant = malloc(sizeof(const_t));
+            hash_insert(constants_table, elements->label, constant);
         }
         else if (strcmp(directive, "SPACE") == 0)
         {
@@ -226,12 +247,28 @@ void check_undefined_labels(hash_table_t *symbols_table)
     }
 }
 
+void check_writing_at_const(hash_table_t *constants_table, write_t *write_list, int write_num)
+{
+    int i;
+    const_t *constant;
+    
+    for (i = 0; i < write_num; ++i)
+    {
+        if ((constant = hash_search(constants_table, write_list[i].label)))
+        {
+            error_at_line(ERROR_MEMORY, write_list[i].line_number, "Cannot write to the "
+                          "constant label %s", write_list[i].label);
+        }
+    }
+}
+
 void assemble(char *input, char *output)
 {
     FILE *fp;
     hash_table_t symbols_table;
     hash_table_t instructions_table;
     hash_table_t directives_table;
+    hash_table_t constants_table;
     object_file_t object_file;
     element_t elements;
     char line_buffer[FILE_LINE_LENGTH];
@@ -242,6 +279,11 @@ void assemble(char *input, char *output)
     int is_directive = 0;
     int is_data_section_defined = 0;
     int is_text_section_defined = 0;
+    
+    /* Used for constant memory writing checking */
+    write_t write_list[100];
+    int write_num = 0;
+    hash_create(&constants_table, "Constants");
     
     /* Initializing */
     init_tables(&symbols_table, &instructions_table, &directives_table);
@@ -272,9 +314,11 @@ void assemble(char *input, char *output)
         if (element_has_operation(&elements))
         {
             /* Generate code for instruction */
-            instruction_size = evaluate_instruction(elements.operation,
+            instruction_size = evaluate_instruction(elements.operation, elements.operand1,
+                                                    elements.operand2,
                                                     &instructions_table,
-                                                    section, line_number, &object_file);
+                                                    section, line_number, &object_file,
+                                                    write_list, &write_num);
                   
             if (instruction_size > 0)
             {
@@ -295,7 +339,9 @@ void assemble(char *input, char *output)
             else
             {
                 is_directive = evaluate_directive(elements.operation, &elements,
-                                                  &directives_table, &section,
+                                                  &directives_table, 
+                                                  &constants_table,
+                                                  &section,
                                                   &is_data_section_defined,
                                                   &is_text_section_defined,
                                                   line_number, &object_file);
@@ -312,6 +358,9 @@ void assemble(char *input, char *output)
     
     /* Check for undefined labels */
     check_undefined_labels(&symbols_table);
+    
+    /* Check for writing in constant memory addresses */
+    check_writing_at_const(&constants_table, write_list, write_num);
     
     /* Printing */
     object_file_print(object_file);

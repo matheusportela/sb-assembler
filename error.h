@@ -26,6 +26,7 @@ typedef enum
     ERROR_LEXICAL,
     ERROR_SYNTACTIC,
     ERROR_SEMANTIC,
+    ERROR_MEMORY,
 } error_t;
 
 void error(error_t error_type, const char* format, ...);
