@@ -21,6 +21,7 @@ void evaluate_label(char *label, hash_table_t *symbols_table,
     symbol_t *symbol_ptr;
     int previous_position;
     int aux_position;
+    int offset;
 
     /* Label analysis */
     if (!is_valid_label(label))
@@ -53,7 +54,12 @@ void evaluate_label(char *label, hash_table_t *symbols_table,
             while (previous_position != -1)
             {
                 aux_position = object_file_get(*object_file_ptr, previous_position);
-                object_file_insert(object_file_ptr, previous_position, symbol_ptr->value);
+                offset = object_file_get_offset(*object_file_ptr, previous_position);
+                
+                if (offset > 0)
+                    printf("VALUE: %d, OFFSET: %d\n", previous_position, offset);
+                
+                object_file_insert(object_file_ptr, previous_position, symbol_ptr->value + offset);
                 previous_position = aux_position;
             }
         }
@@ -99,30 +105,77 @@ int evaluate_instruction(char *instruction, char *operand1, char *operand2,
     return 0;
 }
 
+int process_operand(char *output, char *label)
+{
+    int i;
+    int label_size = strlen(label);
+    char num_str[strlen(label)];
+    int is_copying = 0;
+    int num_str_i = 0;
+    int offset;
+    
+    strcpy(output, label);
+    
+    for (i = 0; i < label_size; ++i)
+    {
+        if (label[i] == '[')
+        {
+            output[i] = '\0';
+            is_copying = 1;
+            printf("Processed operand: %s\n", output);
+            continue;
+        }
+        
+        if (is_copying)
+        {
+            num_str[num_str_i] = label[i];
+            ++num_str_i;
+        }
+        
+        if (label[i] == ']')
+        {
+            offset = strtol(num_str, NULL, 0);
+            printf("Offset: %d\n", offset);
+            return offset;
+        }
+    }
+    
+    /* Only reaches here when there is no closure ']'*/
+    if (is_copying)
+        return -1; /* ERROR signal */
+    
+    return 0; /* Not an array */
+}
+
 void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number)
 {
+    char processed_operand[100];
     symbol_t *symbol_ptr;
+    int offset;
     
     if (instruction_size == 1)
         error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" does "
                       "not accept arguments", instruction);
-
-    if (!(symbol_ptr = hash_search(symbols_table, operand1)))
+    
+    /* Label accessing array memory using the format LABEL[x] */
+    offset = process_operand(processed_operand, operand1);
+    
+    if (!(symbol_ptr = hash_search(symbols_table, processed_operand)))
     {
-        symbols_table_add(symbols_table, operand1, object_file->size, line_number);
-        object_file_add(object_file, -1);
+        symbols_table_add(symbols_table, processed_operand, object_file->size, line_number);
+        object_file_add_with_offset(object_file, -1, offset);
     }
     else
     {
         if (symbol_ptr->defined)
         {
-            object_file_add(object_file, symbol_ptr->value);
+            object_file_add(object_file, symbol_ptr->value + offset);
         }
         else
         {
-            object_file_add(object_file, symbol_ptr->value);
+            object_file_add_with_offset(object_file, symbol_ptr->value, offset);
             symbol_ptr->value = object_file->size - 1;
         }
     }
@@ -132,16 +185,21 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number)
 {
+    char processed_operand[100];
     symbol_t *symbol_ptr;
+    int offset;
     
     if (instruction_size == 2)
         error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" only "
                       "accepts one argument", instruction);
     
-    if (!(symbol_ptr = hash_search(symbols_table, operand2)))
+    /* Label accessing array memory using the format LABEL[x] */
+    offset = process_operand(processed_operand, operand2);
+    
+    if (!(symbol_ptr = hash_search(symbols_table, processed_operand)))
     {
-        symbols_table_add(symbols_table, operand2, object_file->size, line_number);
-        object_file_add(object_file, -1);
+        symbols_table_add(symbols_table, processed_operand, object_file->size, line_number);
+        object_file_add_with_offset(object_file, -1, offset);
     }
     else
     {
@@ -151,7 +209,7 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
         }
         else
         {
-            object_file_add(object_file, symbol_ptr->value);
+            object_file_add_with_offset(object_file, symbol_ptr->value, offset);
             symbol_ptr->value = object_file->size - 1;
         }
     }
@@ -165,6 +223,8 @@ int evaluate_directive(char *directive, element_t *elements,
 {
     directive_t *directive_ptr;
     const_t *constant;
+    int space_num;
+    int i;
     
     /* Generate code for directive */
     if ((directive_ptr = hash_search(directives_table, directive)))
@@ -193,8 +253,15 @@ int evaluate_directive(char *directive, element_t *elements,
             if ((*section) == SECTION_TEXT)
                 error_at_line(ERROR_SEMANTIC, line_number, "Using directive \"%s\" "
                               "int the data section", directive);
-        
-            object_file_add(object_file, 0); /* Initializing SPACE with zero value */
+            
+            /* Reserve one space by default or the number defined with the parameter */
+            if (element_has_operand1(elements))
+                space_num = strtol(elements->operand1, NULL, 0);
+            else
+                space_num = 1;
+            
+            for (i = 0; i < space_num; ++i)
+                object_file_add(object_file, 0); /* Initializing SPACE with zero value */
         }
         else if (strcmp(directive, "SECTION") == 0)
         {
@@ -268,7 +335,6 @@ void assemble(char *input, char *output)
     hash_table_t symbols_table;
     hash_table_t instructions_table;
     hash_table_t directives_table;
-    hash_table_t constants_table;
     object_file_t object_file;
     element_t elements;
     char line_buffer[FILE_LINE_LENGTH];
@@ -280,13 +346,13 @@ void assemble(char *input, char *output)
     int is_data_section_defined = 0;
     int is_text_section_defined = 0;
     
-    /* Used for constant memory writing checking */
+    /* Used for writing at constant memory checking */
+    hash_table_t constants_table;
     write_t write_list[100];
     int write_num = 0;
-    hash_create(&constants_table, "Constants");
     
     /* Initializing */
-    init_tables(&symbols_table, &instructions_table, &directives_table);
+    init_tables(&symbols_table, &instructions_table, &directives_table, &constants_table);
     object_file_init(&object_file);
     element_init(&elements); /* Avoid garbage values at the label field */
     fp = file_open(input, "r");
@@ -370,22 +436,24 @@ void assemble(char *input, char *output)
     
     /* Finishing */
     object_file_destroy(&object_file);
-    destroy_tables(&symbols_table, &instructions_table, &directives_table);
+    destroy_tables(&symbols_table, &instructions_table, &directives_table, &constants_table);
     file_close(fp);
 }
 
 void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                 hash_table_t *directives_table)
+                 hash_table_t *directives_table, hash_table_t *constants_table)
 {
     symbols_table_init(symbols_table);
     instructions_table_init(instructions_table);
     directives_table_init(directives_table);
+    hash_create(constants_table, "Constants");
 }
 
 void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                    hash_table_t *directives_table)
+                    hash_table_t *directives_table, hash_table_t *constants_table)
 {
     hash_destroy(symbols_table);
     hash_destroy(instructions_table);
     hash_destroy(directives_table);
+    hash_destroy(constants_table);
 }

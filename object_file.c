@@ -54,11 +54,25 @@ void object_file_add(object_file_t *object_ptr, obj_t value)
     
     /* Not allocated yet */
     if (object_ptr->size == 1)
+    {
         object_ptr->program = malloc(sizeof(obj_t));
+        object_ptr->offset = malloc(sizeof(int));
+    }
     else
+    {
         object_ptr->program = realloc(object_ptr->program, sizeof(obj_t)*object_ptr->size);
+        object_ptr->offset = realloc(object_ptr->offset, sizeof(int)*object_ptr->size);
+    }
         
     object_ptr->program[object_ptr->size - 1] = value;
+    object_ptr->offset[object_ptr->size - 1] = 0;
+}
+
+void object_file_add_with_offset(object_file_t *object_ptr, obj_t value, int offset)
+{
+    object_file_add(object_ptr, value);
+    
+    object_ptr->offset[object_ptr->size - 1] = offset;
 }
 
 void object_file_insert(object_file_t *object_ptr, int position, obj_t value)
@@ -75,6 +89,11 @@ void object_file_insert(object_file_t *object_ptr, int position, obj_t value)
 obj_t object_file_get(object_file_t object, int position)
 {
     return object.program[position];
+}
+
+int object_file_get_offset(object_file_t object, int position)
+{
+    return object.offset[position];
 }
 
 void object_file_print(object_file_t object)

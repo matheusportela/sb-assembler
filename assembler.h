@@ -73,9 +73,9 @@ typedef struct
 
 void assemble(char *input, char *output);
 void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                 hash_table_t *directives_table);
+                 hash_table_t *directives_table, hash_table_t *constants_table);
 void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                    hash_table_t *directives_table);
+                    hash_table_t *directives_table, hash_table_t *constants_table);
 void evaluate_label(char *label, hash_table_t *symbols_table,
                     object_file_t *object_file_ptr, int line_number);
 int evaluate_instruction(char *instruction, char *operand1, char *operand2,

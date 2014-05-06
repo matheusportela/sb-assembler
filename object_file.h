@@ -25,6 +25,7 @@ typedef short int obj_t;
 typedef struct
 {
     obj_t *program;
+    int *offset;
     int size;
 } object_file_t;
 
@@ -33,8 +34,10 @@ void object_file_read(char *filename);
 void object_file_init(object_file_t *object_ptr);
 void object_file_destroy(object_file_t *object_ptr);
 void object_file_add(object_file_t *object_ptr, obj_t value);
+void object_file_add_with_offset(object_file_t *object_ptr, obj_t value, int offset);
 void object_file_insert(object_file_t *object_ptr, int position, obj_t value);
 obj_t object_file_get(object_file_t object, int position);
+int object_file_get_offset(object_file_t object, int position);
 void object_file_print(object_file_t object);
 void object_file_test();
 

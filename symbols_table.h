@@ -15,6 +15,7 @@ typedef struct
 {
     int value;
     int defined;
+    int offset;
     int line_number;
 } symbol_t;
 
