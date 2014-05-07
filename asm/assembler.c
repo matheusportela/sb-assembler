@@ -288,6 +288,23 @@ void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                                               "Jumping to data section");
                         }
                         break;
+                    case ADD_OPCODE:
+                        if (object_file_ptr->data_section_address >
+                            object_file_ptr->text_section_address)
+                        {
+                            if ((object_file_ptr->text_section_address != -1) &&
+                                (symbol_ptr->value < object_file_ptr->data_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
+                                              "Using text label as data");
+                        }
+                        else
+                        {
+                            if ((object_file_ptr->text_section_address != -1) &&
+                                (symbol_ptr->value >= object_file_ptr->text_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
+                                              "Using text label as data");
+                        }
+                        break;
                 }
                 
                 /* Hold the next position in memory to go*/
@@ -475,6 +492,13 @@ void evaluate_operand1(element_t *elements, int instruction_size,
                 if ((object_file->text_section_address != -1) &&
                     (symbol_ptr->value < object_file->text_section_address))
                     error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
+            }
+            else if (strcmp(instruction, "ADD") == 0)
+            {
+                if ((object_file->text_section_address != -1) &&
+                    (symbol_ptr->value > object_file->text_section_address))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Adding with a text "
+                                  "section label");
             }
             object_file_add(object_file, symbol_ptr->value + offset);
         }
