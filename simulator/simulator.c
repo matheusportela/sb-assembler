@@ -16,6 +16,8 @@ typedef struct
 {
     obj_t *program;
     int size;
+    int text_section_address;
+    int data_section_address;
 } object_file_t;
 
 obj_t memory[1000];
@@ -28,6 +30,7 @@ void object_file_read(char *filename, object_file_t *object_ptr)
     int i;
     
     fread(&object_ptr->size, sizeof(int), 1, fp); /* First word is the program size */
+    fread(&object_ptr->text_section_address, sizeof(int), 1, fp); /* Second word is the text section address */
     
     object_ptr->program = malloc(sizeof(obj_t)*object_ptr->size);
     fread(object_ptr->program, sizeof(obj_t), object_ptr->size, fp);
@@ -189,6 +192,9 @@ int main(int argc, char **argv)
     for (i = 0; i < obj.size; ++i)
         memory[i] = obj.program[i];
     printf("OK!\n\n");
+    
+    /* Setting PC to the text section address */
+    pc = obj.text_section_address;
     
     while (stop_flag != 1)
     {

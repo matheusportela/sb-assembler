@@ -27,6 +27,8 @@ typedef struct
     obj_t *program;
     int *offset;
     int size;
+    int text_section_address;
+    int data_section_address;
 } object_file_t;
 
 void object_file_write(char *filename, object_file_t object);

@@ -53,11 +53,11 @@ void evaluate_label(char *label, hash_table_t *symbols_table, int is_data_sectio
             /* Replace previous definitions */
             while (previous_position != -1)
             {
+                /* Check whether jumping to data section for previous callings to the label */
                 if (object_file_get(*object_file_ptr, previous_position-1) == 0x5)
                 {
-                    printf("JUMPING to %s\n", label);
-                    if (symbol_ptr->value >= is_data_section_defined)
-                        error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
+                    if (symbol_ptr->value >= object_file_ptr->data_section_address)
+                        error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number, "Jumping to data section");
                 }
                 
                 aux_position = object_file_get(*object_file_ptr, previous_position);
@@ -180,6 +180,14 @@ void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
     {
         if (symbol_ptr->defined)
         {
+            /* Check jumping to data section when the label is already defined
+             * This will only happen if the data section comes before the text section
+             */
+            if (strcmp(instruction, "JMP") == 0)
+            {
+                if (symbol_ptr->value < object_file->text_section_address)
+                    error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
+            }
             object_file_add(object_file, symbol_ptr->value + offset);
         }
         else
@@ -281,6 +289,7 @@ int evaluate_directive(char *directive, element_t *elements,
                                   "already defined", elements->operand1);
                 
                 *is_data_section_defined = object_file->size;
+                object_file->data_section_address = object_file->size;
                 *section = SECTION_DATA;
             }
             else if (strcmp(elements->operand1, "TEXT") == 0)
@@ -290,6 +299,7 @@ int evaluate_directive(char *directive, element_t *elements,
                                   "already defined", elements->operand1);
                 
                 *is_text_section_defined = object_file->size;
+                object_file->text_section_address = object_file->size;
                 *section = SECTION_TEXT;
             }
             else

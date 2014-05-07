@@ -12,6 +12,7 @@ void object_file_write(char *filename, object_file_t object)
 {
     FILE *fp = file_open(filename, "wb");
     fwrite(&object.size, sizeof(int), 1, fp); /* First word is the program size */
+    fwrite(&object.text_section_address, sizeof(int), 1, fp); /* Second word is the text section address */
     fwrite(object.program, sizeof(obj_t), object.size, fp);
     file_close(fp);
 }
@@ -40,7 +41,10 @@ void object_file_read(char *filename)
 void object_file_init(object_file_t *object_ptr)
 {
     object_ptr->program = NULL;
+    object_ptr->offset = NULL;
     object_ptr->size = 0;
+    object_ptr->text_section_address = 0;
+    object_ptr->data_section_address = 0;
 }
 
 void object_file_destroy(object_file_t *object_ptr)
