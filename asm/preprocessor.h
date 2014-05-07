@@ -1,5 +1,5 @@
 /**
- * @file   preprocessing.h
+ * @file   preprocessor.h
  * @author Matheus Vieira Portela
  * @date   17/04/2014
  *
@@ -11,8 +11,8 @@
  * Also, it removes all comments from the source code.
  */
 
-#ifndef _PREPROCESSING_H_
-#define _PREPROCESSING_H_
+#ifndef _PREPROCESSOR_H_
+#define _PREPROCESSOR_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,11 +28,11 @@
 #define DIRECTIVE_EQU_NUMBER 2
 
 void preprocess(char *filename, char *output);
-void preprocessing_first_pass(char *filename, hash_table_t *equate_table);
-void preprocessing_second_pass(char *filename, char *output, hash_table_t *equate_table);
+void preprocessor_first_pass(char *filename, hash_table_t *equate_table);
+void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate_table);
 void remove_comments(char *line);
 int detect_directive(element_t *elements, char *line);
 void replace(char *str, char *old, char *new);
 void to_uppercase(char *token);
 
-#endif /* _PREPROCESSING_H_ */
+#endif /* _PREPROCESSOR_H_ */

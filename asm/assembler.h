@@ -52,7 +52,7 @@
 #include "symbols_table.h"
 #include "linked_list.h"
 #include "hash_table.h"
-#include "preprocessing.h"
+#include "preprocessor.h"
 
 typedef enum
 {

@@ -1,12 +1,12 @@
 /**
- * @file   preprocessing.c
+ * @file   preprocessor.c
  * @author Matheus Vieira Portela
  * @date   17/04/2014
  *
  * @brief  Implements pre-processing
  */
 
-#include "preprocessing.h"
+#include "preprocessor.h"
 
 void preprocess(char *filename, char *output)
 {
@@ -18,13 +18,13 @@ void preprocess(char *filename, char *output)
     equate_table_init(&equate_table);
     
     /* First pass */
-    preprocessing_first_pass(filename, &equate_table);
+    preprocessor_first_pass(filename, &equate_table);
     
     /* Second pass */
-    preprocessing_second_pass(filename, output, &equate_table);
+    preprocessor_second_pass(filename, output, &equate_table);
 }
 
-void preprocessing_first_pass(char *filename, hash_table_t *equate_table)
+void preprocessor_first_pass(char *filename, hash_table_t *equate_table)
 {
     FILE *fp;
     char line_buffer[FILE_LINE_LENGTH];
@@ -51,7 +51,7 @@ void preprocessing_first_pass(char *filename, hash_table_t *equate_table)
     file_close(fp);
 }
 
-void preprocessing_second_pass(char *filename, char *output, hash_table_t *equate_table)
+void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate_table)
 {
     FILE *fp;
     FILE *fout;
