@@ -583,6 +583,14 @@ void evaluate_operand2(element_t *elements, int instruction_size,
     {
         if (symbol_ptr->defined)
         {
+            if (strcmp(instruction, "COPY") == 0)
+            {
+                if ((object_file->text_section_address != -1) &&
+                    (symbol_ptr->value > object_file->text_section_address))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Using text memory address "
+                                  "as data");
+            }
+        
             object_file_add(object_file, symbol_ptr->value);
         }
         else
