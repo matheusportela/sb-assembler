@@ -4,26 +4,37 @@
  * @date   17/04/2014
  *
  * @brief  Implements pre-processing
+ *
+ * The preprocessing is implemented with a two-pass algorithm. The first pass only detects
+ * equate directives and build an equate table with its value. The second pass removes
+ * comments, replaces the equates labels and evaluate the if conditions.
+ * Also, it makes everything case-insensitive by forcing the whole source code to
+ * uppercase.
  */
 
 #include "preprocessor.h"
 
+/**
+ * Preprocess a source code, generating a preprocessed output file.
+ * @param filename Input source code.
+ * @param output Output preprocessed code.
+ */
 void preprocess(char *filename, char *output)
 {
     hash_table_t equate_table;
     
     printf("===== Pre-processing =====\n");
     
-    /* Init all tables */
     equate_table_init(&equate_table);
-    
-    /* First pass */
     preprocessor_first_pass(filename, &equate_table);
-    
-    /* Second pass */
     preprocessor_second_pass(filename, output, &equate_table);
 }
 
+/**
+ * First pass, detects equate directives and force the code to uppercase.
+ * @param filename Input source file.
+ * @param equate_table Allocated table to store the equate directives.
+ */
 void preprocessor_first_pass(char *filename, hash_table_t *equate_table)
 {
     FILE *fp;
@@ -51,6 +62,14 @@ void preprocessor_first_pass(char *filename, hash_table_t *equate_table)
     file_close(fp);
 }
 
+/**
+ * Second pass, force the code to uppercase, remove comments, replace equate directives
+ * and evaluate if cases. It must evaluate the equates before the if conditions.
+ * For false IF cases, the next line must be ignored.
+ * @param filename Input source file.
+ * @param output Output preprocessed file.
+ * @param equate_table Allocated table to store the equate directives.
+ */
 void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate_table)
 {
     FILE *fp;
@@ -129,6 +148,10 @@ void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate
     file_close(fout);
 }
 
+/**
+ * Remove comments by placing "\n\0" to the position where a ";" is found.
+ * @param line Line to have its comments removed.
+ */
 void remove_comments(char *line)
 {
     int i;
@@ -146,6 +169,12 @@ void remove_comments(char *line)
     }
 }
 
+/**
+ * Detect whether a line has either an if or an equate directive, also storing the parsed
+ * line to an element struct.
+ * @param elements Store the parsed line.
+ * @param line Line to be evaluated.
+ */
 int detect_directive(element_t *elements, char *line)
 {
     scan_line_elements(elements, line);

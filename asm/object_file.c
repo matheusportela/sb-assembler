@@ -145,11 +145,11 @@ void object_file_insert(object_file_t *object_ptr, int position, obj_t value)
  */
 obj_t object_file_get(object_file_t object, int position)
 {
-    if (position >= object_ptr->size)
+    if (position >= object.size)
         error(ERROR_OBJECT_FILE, "ERROR [object_file]: Trying to get a value at an "
                                  "invalid position\n"
                                  "Object file size: %d\tPosition: %d\n",
-                                 object_ptr->size, position);
+                                 object.size, position);
                                  
     return object.program[position];
 }
@@ -161,11 +161,11 @@ obj_t object_file_get(object_file_t object, int position)
  */
 int object_file_get_offset(object_file_t object, int position)
 {
-    if (position >= object_ptr->size)
+    if (position >= object.size)
         error(ERROR_OBJECT_FILE, "ERROR [object_file]: Trying to get an offset at an "
                                  "invalid position\n"
                                  "Object file size: %d\tPosition: %d\n",
-                                 object_ptr->size, position);
+                                 object.size, position);
 
     return object.offset[position];
 }
