@@ -18,10 +18,10 @@ void equate_table_init(hash_table_t *equate_table)
 }
 
 /**
- * Add a new instruction to the equate directives table.
- * @param equate_table a table pointer to a already initialised hash table.
- * @param label instruction label string.
- * @param size instruction size in memory, in words.
+ * Add a new equate declaration to the equate directives table.
+ * @param equate_table A table pointer to a already initialised hash table.
+ * @param label Instruction label string.
+ * @param value Corresponding value of the equate.
  */
 void equate_table_add(hash_table_t *equate_table, char *label, char *value)
 {
