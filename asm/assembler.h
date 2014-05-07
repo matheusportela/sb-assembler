@@ -34,7 +34,7 @@
  * 
  * The following directives are also available, with its parameters in parenthesis when
  * necessary:
- * SPACE: Alloc space in memory (only one word)
+ * SPACE (NUM): Alloc space in memory (NUM words or one word by default)
  * CONST (NUM): Write NUM to the memory in the address occupied by the directive
  */
 
