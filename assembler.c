@@ -54,10 +54,22 @@ void evaluate_label(char *label, hash_table_t *symbols_table, int is_data_sectio
             while (previous_position != -1)
             {
                 /* Check whether jumping to data section for previous callings to the label */
-                if (object_file_get(*object_file_ptr, previous_position-1) == 0x5)
+                switch (object_file_get(*object_file_ptr, previous_position-1))
                 {
-                    if (symbol_ptr->value >= object_file_ptr->data_section_address)
-                        error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number, "Jumping to data section");
+                    case JMP_OPCODE: case JMPN_OPCODE: case JMPP_OPCODE: case JMPZ_OPCODE:
+                        if (object_file_ptr->data_section_address > object_file_ptr->text_section_address)
+                        {
+                            if ((object_file_ptr->data_section_address != -1) &&
+                                (symbol_ptr->value >= object_file_ptr->data_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number, "Jumping to data section");
+                        }
+                        else
+                        {
+                            if ((object_file_ptr->data_section_address != -1) &&
+                                (symbol_ptr->value < object_file_ptr->text_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number, "Jumping to data section");
+                        }
+                        break;
                 }
                 
                 aux_position = object_file_get(*object_file_ptr, previous_position);
@@ -125,6 +137,10 @@ int process_operand(char *output, char *label, int line_number)
     int num_str_i = 0;
     int offset;
     
+    if (!is_valid_operand(label))
+        error_at_line(ERROR_LEXICAL, line_number, "\"%s\" is not a valid label name",
+                      label);
+    
     strcpy(output, label);
     
     for (i = 0; i < label_size; ++i)
@@ -151,7 +167,7 @@ int process_operand(char *output, char *label, int line_number)
     
     /* Only reaches here when there is no closure ']'*/
     if (is_copying)
-        error_at_line(ERROR_SYNTACTIC, line_number, "Missing closing ']'");
+        error_at_line(ERROR_SYNTACTIC, line_number, "Missing closing ']' at label %s", output);
     
     return 0; /* Not an array */
 }
@@ -183,9 +199,13 @@ void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
             /* Check jumping to data section when the label is already defined
              * This will only happen if the data section comes before the text section
              */
-            if (strcmp(instruction, "JMP") == 0)
+            if ((strcmp(instruction, "JMP") == 0) ||
+                (strcmp(instruction, "JMPN") == 0) ||
+                (strcmp(instruction, "JMPP") == 0) ||
+                (strcmp(instruction, "JMPZ") == 0))
             {
-                if (symbol_ptr->value < object_file->text_section_address)
+                if ((object_file->text_section_address != -1) &&
+                    (symbol_ptr->value < object_file->text_section_address))
                     error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
             }
             object_file_add(object_file, symbol_ptr->value + offset);

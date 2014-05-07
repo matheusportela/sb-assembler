@@ -192,3 +192,37 @@ int is_number(char *token)
     
     return (diff == length);
 }
+
+/**
+ * Check whether a given token is has a valid operand naming, which must be composed by
+ * characters 0-9, a-z, A-Z, _ (underscore), and [ ] (square brackets for array access).
+ * Label names cannot start with a number.
+ * @param token string pointer.
+ * @return 1 if token is a label or 0 otherwise.
+ */
+int is_valid_operand(char *token)
+{
+    char c;
+    int i;
+    int token_size;
+    
+    /* Exit immediately if starts with a number */
+    if (token[0] >= '0' && token[0] <= '9')
+        return 0;
+    
+    token_size = strlen(token) - 1; /* Ignoring the ':' character of a label */
+    
+    for (i = 0; i < token_size; ++i)
+    {
+        c = token[i];
+        if (!((c >= '0' && c <= '9') ||
+              (c >= 'a' && c <= 'z') ||
+              (c >= 'A' && c <= 'Z') ||
+              (c == '_') ||
+              (c == '[') ||
+              (c == ']')))
+              return 0;
+    }
+    
+    return 1;
+}

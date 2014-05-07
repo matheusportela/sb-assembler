@@ -19,10 +19,10 @@ void instructions_table_init(hash_table_t *instructions_table)
     instructions_table_add(instructions_table, "SUB", 2, 0x2);
     instructions_table_add(instructions_table, "MULT", 2, 0x3);
     instructions_table_add(instructions_table, "DIV", 2, 0x4);
-    instructions_table_add(instructions_table, "JMP", 2, 0x5);
-    instructions_table_add(instructions_table, "JMPN", 2, 0x6);
-    instructions_table_add(instructions_table, "JMPP", 2, 0x7);
-    instructions_table_add(instructions_table, "JMPZ", 2, 0x8);
+    instructions_table_add(instructions_table, "JMP", 2, JMP_OPCODE);
+    instructions_table_add(instructions_table, "JMPN", 2, JMPN_OPCODE);
+    instructions_table_add(instructions_table, "JMPP", 2, JMPP_OPCODE);
+    instructions_table_add(instructions_table, "JMPZ", 2, JMPZ_OPCODE);
     instructions_table_add(instructions_table, "COPY", 3, 0x9);
     instructions_table_add(instructions_table, "LOAD", 2, 0xA);
     instructions_table_add(instructions_table, "STORE", 2, 0xB);

@@ -11,6 +11,11 @@
 
 #include "hash_table.h"
 
+#define JMP_OPCODE 0x5
+#define JMPN_OPCODE 0x6
+#define JMPP_OPCODE 0x7
+#define JMPZ_OPCODE 0x8
+
 typedef struct
 {
     int size;

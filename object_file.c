@@ -43,8 +43,8 @@ void object_file_init(object_file_t *object_ptr)
     object_ptr->program = NULL;
     object_ptr->offset = NULL;
     object_ptr->size = 0;
-    object_ptr->text_section_address = 0;
-    object_ptr->data_section_address = 0;
+    object_ptr->text_section_address = -1;
+    object_ptr->data_section_address = -1;
 }
 
 void object_file_destroy(object_file_t *object_ptr)
