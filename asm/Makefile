@@ -6,21 +6,18 @@ OBJECTS = $(SOURCES:.c=.o)
 HEADERS = $(SOURCES:.c=.h)
 EXECUTABLES = ../bin/assembler
 
-LIBS = # [Link para as bibliotecas]
-
-INC = -I. # [Coloque as demais pastas para arquivos-cabeçalho aqui]
-DEF = # [Quaisquer definições]
+INC = -I.
 
 .PHONY: all
 all: $(SOURCES) $(EXECUTABLES)
 
 # Create executable file
 $(EXECUTABLES): $(OBJECTS)
-	$(CC) -O2 -o $@ $^ $(LIBS)
+	$(CC) -O2 -o $@ $^
 	
 # Create object files
 .c.o:
-	$(CC) $(CFLAGS) $(INC) $(DEF) -c $<
+	$(CC) $(CFLAGS) $(INC) -c $<
 
 .PHONY: print
 print:

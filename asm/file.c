@@ -11,6 +11,7 @@
 /**
  * Opens a file in reading mode and check for erros.
  * @param filename the name of the file to be opened.
+ * @param mode the opening mode (e.g. 'r' for read, 'w' for write, or 'a' for append)
  * @return pointer to the opened file struct.
  */
 FILE* file_open(char *filename, char *mode)

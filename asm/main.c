@@ -3,7 +3,8 @@
 void parse_arguments(int argc, char **argv, char **infile, char **prefile, char **outfile);
 
 /**
- * Main function
+ * Main function. Parse the arguments, preprocess the input file and assemble the
+ * preprocessed file, generating an object file.
  */
 int main(int argc, char **argv)
 {
