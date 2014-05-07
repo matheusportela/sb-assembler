@@ -1,24 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <object_file.h>
 
 #define DEBUG 0
-
-/* Object file has one byte elements */
-typedef short int obj_t;
-
-/* The object struct should have two sizes: one for the size that is being used and
- * another for the size already allocated. This will allow to remove elements by only
- * setting the value number.
- * Only necessary if object_file_remove function is defined.
- */
-typedef struct
-{
-    obj_t *program;
-    int size;
-    int text_section_address;
-    int data_section_address;
-} object_file_t;
 
 obj_t memory[1000];
 short int acc = 0; /* short int register */

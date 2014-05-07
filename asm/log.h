@@ -1,0 +1,1 @@
+/* Define logging and output system */

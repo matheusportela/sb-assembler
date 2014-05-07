@@ -13,9 +13,6 @@ int main(int argc, char **argv)
     preprocess(infile, prefile);
     assemble(prefile, outfile);
     
-    /* Print object file to the screen */
-    object_file_read(outfile);
-    
     return 0;
 }
 

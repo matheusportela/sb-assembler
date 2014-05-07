@@ -17,25 +17,23 @@ void object_file_write(char *filename, object_file_t object)
     file_close(fp);
 }
 
-void object_file_read(char *filename)
+void object_file_read(char *filename, object_file_t *object_ptr)
 {
-    FILE *fp = file_open(filename, "rb");
-    int program_size;
-    obj_t *buffer;
+    FILE *fp = fopen(filename, "rb");
     int i;
     
-    fread(&program_size, sizeof(int), 1, fp); /* First word is the program size */
+    fread(&object_ptr->size, sizeof(int), 1, fp); /* First word is the program size */
+    fread(&object_ptr->text_section_address, sizeof(int), 1, fp); /* Second word is the text section address */
     
-    buffer = malloc(sizeof(obj_t)*program_size);
-    fread(buffer, sizeof(obj_t), program_size, fp);
+    object_ptr->program = malloc(sizeof(obj_t)*object_ptr->size);
+    fread(object_ptr->program, sizeof(obj_t), object_ptr->size, fp);
     
     printf("\n===== %s =====\n\n", filename);
-    for (i = 0; i < program_size; ++i)
-        printf("(addr. %2.2d): %d\n", i, buffer[i]);
+    for (i = 0; i < object_ptr->size; ++i)
+        printf("(addr. %d): %d\n", i, object_ptr->program[i]);
     printf("\n==========\n");
     
-    file_close(fp);
-    free(buffer);
+    fclose(fp);
 }
 
 void object_file_init(object_file_t *object_ptr)
@@ -110,26 +108,4 @@ void object_file_print(object_file_t object)
         printf("(addr. %2.2d): %d\n", i, object_file_get(object, i));
     
     printf("\n");
-}
-
-void object_file_test()
-{
-    object_file_t obj;
-    object_file_init(&obj);
-    object_file_add(&obj, 1);
-    object_file_add(&obj, 2);
-    object_file_add(&obj, 3);
-    object_file_insert(&obj, 1, 4);
-    
-    printf("Object file test\n\n");
-    
-    printf("Object file:\n");
-    object_file_print(obj);
-
-    object_file_write("object.txt", obj);
-    object_file_read("object.txt");
-
-    object_file_destroy(&obj);
-    
-    printf("\nFinished test\n");
 }

@@ -390,9 +390,6 @@ void assemble(char *input, char *output)
     write_t write_list[100]; /* TODO: Change to dynamically allocated list */
     int write_num = 0;
     
-    /* Use for jumping at data section checking */
-    int farthest_jump = 0;
-    
     /* Initializing */
     init_tables(&symbols_table, &instructions_table, &directives_table, &constants_table);
     object_file_init(&object_file);
