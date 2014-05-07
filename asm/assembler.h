@@ -54,6 +54,9 @@
 #include "hash_table.h"
 #include "preprocessor.h"
 
+/**
+ * All possible program sections
+ */
 typedef enum
 {
     SECTION_UNKNOWN,
@@ -61,21 +64,22 @@ typedef enum
     SECTION_TEXT,
 } section_t;
 
+/**
+ * Used for checking if writing to a constant memory address. Includes the line number for
+ * error printing purposes.
+ */
 typedef struct
 {
     char label[100];
     int line_number;
 } write_t;
 
+/**
+ * Boilerplate for constant table
+ */
 typedef struct
 {
 } const_t;
-
-typedef struct
-{
-    int address;
-    int line_number;
-} jump_t;
 
 void assemble(char *input, char *output);
 void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
