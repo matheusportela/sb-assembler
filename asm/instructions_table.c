@@ -15,20 +15,20 @@
 void instructions_table_init(hash_table_t *instructions_table)
 {
     hash_create(instructions_table, "Instructions");
-    instructions_table_add(instructions_table, "ADD", 2, 0x1);
-    instructions_table_add(instructions_table, "SUB", 2, 0x2);
-    instructions_table_add(instructions_table, "MULT", 2, 0x3);
-    instructions_table_add(instructions_table, "DIV", 2, 0x4);
+    instructions_table_add(instructions_table, "ADD", 2, ADD_OPCODE);
+    instructions_table_add(instructions_table, "SUB", 2, SUB_OPCODE);
+    instructions_table_add(instructions_table, "MULT", 2, MULT_OPCODE);
+    instructions_table_add(instructions_table, "DIV", 2, DIV_OPCODE);
     instructions_table_add(instructions_table, "JMP", 2, JMP_OPCODE);
     instructions_table_add(instructions_table, "JMPN", 2, JMPN_OPCODE);
     instructions_table_add(instructions_table, "JMPP", 2, JMPP_OPCODE);
     instructions_table_add(instructions_table, "JMPZ", 2, JMPZ_OPCODE);
-    instructions_table_add(instructions_table, "COPY", 3, 0x9);
-    instructions_table_add(instructions_table, "LOAD", 2, 0xA);
-    instructions_table_add(instructions_table, "STORE", 2, 0xB);
-    instructions_table_add(instructions_table, "INPUT", 2, 0xC);
-    instructions_table_add(instructions_table, "OUTPUT", 2, 0xD);
-    instructions_table_add(instructions_table, "STOP", 1, 0xE);
+    instructions_table_add(instructions_table, "COPY", 3, COPY_OPCODE);
+    instructions_table_add(instructions_table, "LOAD", 2, LOAD_OPCODE);
+    instructions_table_add(instructions_table, "STORE", 2, STORE_OPCODE);
+    instructions_table_add(instructions_table, "INPUT", 2, INPUT_OPCODE);
+    instructions_table_add(instructions_table, "OUTPUT", 2, OUTPUT_OPCODE);
+    instructions_table_add(instructions_table, "STOP", 1, STOP_OPCODE);
 }
 
 /**

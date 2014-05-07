@@ -265,6 +265,8 @@ void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                  * than the text section address. Otherwise, checking for values greater
                  * than the data section are enough (meaning that the text section comes
                  * before the data one).
+                 * The same reasoning applies to instructions that require a data memory
+                 * address, such as arithmetic operations and store/input.
                  */
                 switch (object_file_get(*object_file_ptr, previous_position-1))
                 {
@@ -288,21 +290,27 @@ void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                                               "Jumping to data section");
                         }
                         break;
+                        
                     case ADD_OPCODE:
+                    case SUB_OPCODE:
+                    case MULT_OPCODE:
+                    case DIV_OPCODE:
+                    case STORE_OPCODE:
+                    case INPUT_OPCODE:
                         if (object_file_ptr->data_section_address >
                             object_file_ptr->text_section_address)
                         {
                             if ((object_file_ptr->text_section_address != -1) &&
                                 (symbol_ptr->value < object_file_ptr->data_section_address))
                                 error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
-                                              "Using text label as data");
+                                              "Using text memory address as data");
                         }
                         else
                         {
                             if ((object_file_ptr->text_section_address != -1) &&
                                 (symbol_ptr->value >= object_file_ptr->text_section_address))
                                 error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
-                                              "Using text label as data");
+                                              "Using text memory address as data");
                         }
                         break;
                 }
@@ -370,7 +378,7 @@ int evaluate_instruction(element_t *elements,
             list_append(write_list, write_ptr);
         }
         /* Check division by zero */
-        else if ((strcmp(instruction, "DIV") == 0) && (strcmp(operand1, "0")))
+        else if ((strcmp(instruction, "DIV") == 0) && (strcmp(operand1, "0") == 0))
         {
             error_at_line(ERROR_SEMANTIC, line_number, "Dividing by zero");
         }
@@ -493,12 +501,17 @@ void evaluate_operand1(element_t *elements, int instruction_size,
                     (symbol_ptr->value < object_file->text_section_address))
                     error_at_line(ERROR_SEMANTIC, line_number, "Jumping to data section");
             }
-            else if (strcmp(instruction, "ADD") == 0)
+            else if ((strcmp(instruction, "ADD") == 0) ||
+                     (strcmp(instruction, "SUB") == 0) ||
+                     (strcmp(instruction, "MULT") == 0) ||
+                     (strcmp(instruction, "DIV") == 0) ||
+                     (strcmp(instruction, "STORE") == 0) ||
+                     (strcmp(instruction, "INPUT") == 0))
             {
                 if ((object_file->text_section_address != -1) &&
                     (symbol_ptr->value > object_file->text_section_address))
-                    error_at_line(ERROR_SEMANTIC, line_number, "Adding with a text "
-                                  "section label");
+                    error_at_line(ERROR_SEMANTIC, line_number, "Using text memory address "
+                                  "as data");
             }
             object_file_add(object_file, symbol_ptr->value + offset);
         }
