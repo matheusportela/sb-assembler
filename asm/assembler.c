@@ -150,6 +150,12 @@ void assemble(char *input, char *output)
     check_undefined_labels(&symbols_table);
     check_writing_at_const(&constants_table, &write_list, write_num);
     
+    if (object_file.data_section_address == -1)
+        error(ERROR_SYNTACTIC, "Data section missing");
+    
+    if (object_file.text_section_address == -1)
+        error(ERROR_SYNTACTIC, "Text section missing");
+    
     /* Printing */
     object_file_print(object_file);
     
