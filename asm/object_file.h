@@ -17,10 +17,13 @@
 /* Object file has one byte elements */
 typedef short int obj_t;
 
-/* The object struct should have two sizes: one for the size that is being used and
- * another for the size already allocated. This will allow to remove elements by only
- * setting the value number.
- * Only necessary if object_file_remove function is defined.
+/*
+ * An object file struct contains five sections:
+ * - program: Contains the compiled program, which will be written to the object file.
+ * - offset: Offset, used for array accessing.
+ * - size: Current program size, in words.
+ * - text_section_address: Start of the text section.
+ * - data_section_address: Start of the data section.
  */
 typedef struct
 {
