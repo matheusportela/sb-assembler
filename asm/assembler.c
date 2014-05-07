@@ -22,6 +22,13 @@
 
 #include "assembler.h"
 
+int write_compare(write_t *data, char *label)
+{
+    if (strcmp(data->label, label) == 0)
+        return 1;
+    return 0;
+}
+
 /**
  * Assemble a given source code input and writes the object file to the output file. It
  * first parses each line from the source and analyse its label, operation and operands.
@@ -57,13 +64,14 @@ void assemble(char *input, char *output)
     section_t section = SECTION_UNKNOWN;
     
     /* Used as flags for definition of the sections */
-    /* TODO: Is it necessary or can it be replaced by object_file.data_section_address? */
     int is_data_section_defined = 0;
     int is_text_section_defined = 0;
     
     /* Used for writing at constant memory checking */
-    write_t write_list[100]; /* TODO: Change to dynamically allocated list */
+    list_t write_list;
     int write_num = 0;
+    
+    list_create(&write_list, sizeof(write_t), (void*)write_compare, NULL);
     
     /* Initializing */
     init_tables(&symbols_table, &instructions_table, &directives_table, &constants_table);
@@ -91,17 +99,16 @@ void assemble(char *input, char *output)
         
         /* Label analysis */
         if (element_has_label(&elements))
-            evaluate_label(elements.label, &symbols_table, &object_file, line_number);
+            evaluate_label(&elements, &symbols_table, &object_file, line_number);
         
         /* Check operation field (which can be either an instruction or a directive) */
         if (element_has_operation(&elements))
         {
             /* Generate code for instruction */
-            instruction_size = evaluate_instruction(elements.operation, elements.operand1,
-                                                    elements.operand2,
+            instruction_size = evaluate_instruction(&elements,
                                                     &instructions_table,
                                                     section, line_number, &object_file,
-                                                    write_list, &write_num);
+                                                    &write_list, &write_num);
                   
             if (instruction_size > 0) /* Detected as a instruction */
             {
@@ -109,19 +116,19 @@ void assemble(char *input, char *output)
         
                 /* Generate code for labels in operands */
                 if (element_has_operand1(&elements))
-                    evaluate_operand1(elements.operation, elements.operand1,
+                    evaluate_operand1(&elements,
                                       instruction_size, &symbols_table, &object_file,
                                       line_number);
                 
                 if (element_has_operand2(&elements))
-                    evaluate_operand2(elements.operation, elements.operand2,
+                    evaluate_operand2(&elements,
                                       instruction_size, &symbols_table, &object_file,
                                       line_number);
             }
             /* Generate code for directive */
             else
             {
-                is_directive = evaluate_directive(elements.operation, &elements,
+                is_directive = evaluate_directive(&elements,
                                                   &directives_table, 
                                                   &constants_table,
                                                   &section,
@@ -141,7 +148,7 @@ void assemble(char *input, char *output)
     
     /* Check for errors */
     check_undefined_labels(&symbols_table);
-    check_writing_at_const(&constants_table, write_list, write_num);
+    check_writing_at_const(&constants_table, &write_list, write_num);
     
     /* Printing */
     object_file_print(object_file);
@@ -199,13 +206,14 @@ void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_tabl
  * @param object_file_ptr Pointer to the object file.
  * @param line_number Number of the current line in the source file.
  */
-void evaluate_label(char *label, hash_table_t *symbols_table,
+void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                     object_file_t *object_file_ptr, int line_number)
 {
     symbol_t *symbol_ptr;
     int previous_position;
     int aux_position;
     int offset;
+    char *label = elements->label;
 
     /* Label analysis */
     if (!is_valid_label(label))
@@ -308,12 +316,16 @@ void evaluate_label(char *label, hash_table_t *symbols_table,
  * division instruction with a constant 0.
  * @return The instruction size if it is a valid instruction, 0 otherwise.
  */
-int evaluate_instruction(char *instruction, char *operand1, char *operand2,
+int evaluate_instruction(element_t *elements,
                          hash_table_t *instructions_table, section_t section,
-                         int line_number, object_file_t *object_file, write_t *write_list,
+                         int line_number, object_file_t *object_file, list_t *write_list,
                          int *write_num)
 {
     instruction_t *instruction_ptr;
+    char *instruction = elements->operation;
+    char *operand1 = elements->operand1;
+    char *operand2 = elements->operand2;
+    write_t *write_ptr;
 
     /* Only enters when the instruction is found in the instructions table */
     if ((instruction_ptr = hash_search(instructions_table, instruction)))
@@ -328,15 +340,17 @@ int evaluate_instruction(char *instruction, char *operand1, char *operand2,
         /* For later checking whether writing in const memory */
         if ((strcmp(instruction, "STORE") == 0) || (strcmp(instruction, "INPUT") == 0))
         {
-            strcpy(write_list[*write_num].label, operand1);
-            write_list[*write_num].line_number = line_number;
-            ++(*write_num);
+            write_ptr = malloc(sizeof(write_t));
+            strcpy(write_ptr->label, operand1);
+            write_ptr->line_number = line_number;
+            list_append(write_list, write_ptr);
         }
         else if (strcmp(instruction, "COPY") == 0)
         {
-            strcpy(write_list[*write_num].label, operand2);
-            write_list[*write_num].line_number = line_number;
-            ++(*write_num);
+            write_ptr = malloc(sizeof(write_t));
+            strcpy(write_ptr->label, operand2);
+            write_ptr->line_number = line_number;
+            list_append(write_list, write_ptr);
         }
         /* Check division by zero */
         else if ((strcmp(instruction, "DIV") == 0) && (strcmp(operand1, "0")))
@@ -419,13 +433,15 @@ int process_operand(char *output, char *label, int line_number)
  * @param object_file Output object file.
  * @param line_number Current line for error printing purposes.
  */
-void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
+void evaluate_operand1(element_t *elements, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number)
 {
     char processed_operand[100]; /* Operand without the offset when in LABEL[N] format */
     symbol_t *symbol_ptr; /* For searching the symbols table */
     int offset;
+    char *instruction = elements->operation;
+    char *operand1 = elements->operand1;
     
     if (instruction_size == 1)
         error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" does "
@@ -475,13 +491,15 @@ void evaluate_operand1(char *instruction, char *operand1, int instruction_size,
     }
 }
 
-void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
+void evaluate_operand2(element_t *elements, int instruction_size,
                        hash_table_t *symbols_table, object_file_t *object_file,
                        int line_number)
 {
     char processed_operand[100];
     symbol_t *symbol_ptr;
     int offset;
+    char *instruction = elements->operation;
+    char *operand2 = elements->operand2;
     
     if (instruction_size == 2)
         error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" only "
@@ -515,7 +533,7 @@ void evaluate_operand2(char *instruction, char *operand2, int instruction_size,
  * directive) or by invalid use of the directive (wrong number of arguments or section
  * name).
  */
-int evaluate_directive(char *directive, element_t *elements,
+int evaluate_directive(element_t *elements,
                        hash_table_t *directives_table, hash_table_t *constants_table,
                        section_t *section, int *is_data_section_defined,
                        int *is_text_section_defined, int line_number,
@@ -525,6 +543,7 @@ int evaluate_directive(char *directive, element_t *elements,
     const_t *constant;
     int space_num;
     int i;
+    char *directive = elements->operation;
     
     /* Generate code for directive */
     if ((directive_ptr = hash_search(directives_table, directive)))
@@ -630,18 +649,23 @@ void check_undefined_labels(hash_table_t *symbols_table)
  * @param write_list List of labels used as targets by writing instructions.
  * @param write_num Number of elements in the write_list.
  */
-void check_writing_at_const(hash_table_t *constants_table, write_t *write_list,
+void check_writing_at_const(hash_table_t *constants_table, list_t *write_list,
                             int write_num)
 {
-    int i;
     const_t *constant;
+    char *label;
+    list_node_t *current_node = write_list->head;
     
-    for (i = 0; i < write_num; ++i)
+    while (current_node != NULL)
     {
-        if ((constant = hash_search(constants_table, write_list[i].label)))
+        label = ((write_t*)current_node->data)->label;
+        
+        if ((constant = hash_search(constants_table, label)))
         {
-            error_at_line(ERROR_SEMANTIC, write_list[i].line_number, "Cannot write to the "
-                          "constant label %s", write_list[i].label);
+            error_at_line(ERROR_SEMANTIC, ((write_t*)current_node->data)->line_number, "Cannot write to the "
+                          "constant label %s", label);
         }
+        
+        current_node = current_node->next;
     }
 }
