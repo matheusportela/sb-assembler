@@ -166,37 +166,10 @@ int is_valid_label(char *token)
 }
 
 /**
- * Check whether a given token is a valid representation of a number.
- *
- * Uses the strtol function, from stdlib, which converts a string to long int. This
- * function returns the converted number and sets its second parameter, a char** pointer,
- * to the address of the last character which is evaluated during conversion. If this
- * address is not at the end of the token, it means that the conversion was not successful
- * because the token is not a valid representation of a number.
- * The last parameter is the base of the number, which may be 2, 8, 10, 16, etc. If it is
- * set to 0, it will try and get the representation from the token format.
- * More info avaliable at: http://www.cplusplus.com/reference/cstdlib/strtol/
- *
- * @param token string pointer.
- * @return 1 if token is a number or 0 otherwise.
- */
-int is_number(char *token)
-{
-    char *end_ptr;
-    int diff;
-    int length;
-    
-    strtol(token, &end_ptr, 0);
-    diff = end_ptr - token;
-    length = strlen(token);
-    
-    return (diff == length);
-}
-
-/**
  * Check whether a given token is has a valid operand naming, which must be composed by
  * characters 0-9, a-z, A-Z, _ (underscore), and [ ] (square brackets for array access).
  * Label names cannot start with a number.
+ * Similar implementation as is_valid_label.
  * @param token string pointer.
  * @return 1 if token is a label or 0 otherwise.
  */
@@ -225,4 +198,32 @@ int is_valid_operand(char *token)
     }
     
     return 1;
+}
+
+/**
+ * Check whether a given token is a valid representation of a number.
+ *
+ * Uses the strtol function, from stdlib, which converts a string to long int. This
+ * function returns the converted number and sets its second parameter, a char** pointer,
+ * to the address of the last character which is evaluated during conversion. If this
+ * address is not at the end of the token, it means that the conversion was not successful
+ * because the token is not a valid representation of a number.
+ * The last parameter is the base of the number, which may be 2, 8, 10, 16, etc. If it is
+ * set to 0, it will try and get the representation from the token format.
+ * More info avaliable at: http://www.cplusplus.com/reference/cstdlib/strtol/
+ *
+ * @param token string pointer.
+ * @return 1 if token is a number or 0 otherwise.
+ */
+int is_number(char *token)
+{
+    char *end_ptr;
+    int diff;
+    int length;
+    
+    strtol(token, &end_ptr, 0);
+    diff = end_ptr - token;
+    length = strlen(token);
+    
+    return (diff == length);
 }

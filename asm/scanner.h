@@ -35,7 +35,7 @@ int is_separator(char c);
 int is_end_of_line(char c);
 int is_label(char *token);
 int is_valid_label(char *token);
-int is_number(char *token);
 int is_valid_operand(char *token);
+int is_number(char *token);
 
 #endif /* _SCANNER_H_ */

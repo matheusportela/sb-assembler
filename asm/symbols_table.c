@@ -22,6 +22,7 @@ void symbols_table_init(hash_table_t *symbols_table)
  * @param symbols_table a table pointer to an already initialised hash table.
  * @param label instruction label string.
  * @param value position in the memory.
+ * @param line_number source code line at which the label was called or defined.
  */
 void symbols_table_add(hash_table_t *symbols_table, char *label, int value, int line_number)
 {
