@@ -294,7 +294,6 @@ void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                     case ADD_OPCODE:
                     case SUB_OPCODE:
                     case MULT_OPCODE:
-                    case DIV_OPCODE:
                     case STORE_OPCODE:
                     case INPUT_OPCODE:
                         if (object_file_ptr->data_section_address >
@@ -312,6 +311,29 @@ void evaluate_label(element_t *elements, hash_table_t *symbols_table,
                                 error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
                                               "Using text memory address as data");
                         }
+                        break;
+                        
+                    case DIV_OPCODE:
+                        if (object_file_ptr->data_section_address >
+                            object_file_ptr->text_section_address)
+                        {
+                            if ((object_file_ptr->text_section_address != -1) &&
+                                (symbol_ptr->value < object_file_ptr->data_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
+                                              "Using text memory address as data");
+                        }
+                        else
+                        {
+                            if ((object_file_ptr->text_section_address != -1) &&
+                                (symbol_ptr->value >= object_file_ptr->text_section_address))
+                                error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
+                                              "Using text memory address as data");
+                        }
+                        
+                        if (strcmp(elements->operand1, "0") == 0)
+                            error_at_line(ERROR_SEMANTIC, symbol_ptr->line_number,
+                                          "Dividing by zero");
+                        
                         break;
                 }
                 
@@ -376,11 +398,6 @@ int evaluate_instruction(element_t *elements,
             strcpy(write_ptr->label, operand2);
             write_ptr->line_number = line_number;
             list_append(write_list, write_ptr);
-        }
-        /* Check division by zero */
-        else if ((strcmp(instruction, "DIV") == 0) && (strcmp(operand1, "0") == 0))
-        {
-            error_at_line(ERROR_SEMANTIC, line_number, "Dividing by zero");
         }
     
         return instruction_ptr->size;
@@ -504,7 +521,6 @@ void evaluate_operand1(element_t *elements, int instruction_size,
             else if ((strcmp(instruction, "ADD") == 0) ||
                      (strcmp(instruction, "SUB") == 0) ||
                      (strcmp(instruction, "MULT") == 0) ||
-                     (strcmp(instruction, "DIV") == 0) ||
                      (strcmp(instruction, "STORE") == 0) ||
                      (strcmp(instruction, "INPUT") == 0))
             {
@@ -513,6 +529,19 @@ void evaluate_operand1(element_t *elements, int instruction_size,
                     error_at_line(ERROR_SEMANTIC, line_number, "Using text memory address "
                                   "as data");
             }
+            else if (strcmp(instruction, "DIV") == 0)
+            {
+                if ((object_file->text_section_address != -1) &&
+                    (symbol_ptr->value > object_file->text_section_address))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Using text memory address "
+                                  "as data");
+                                  
+                /* Checking division by zero */
+                if ((object_file->data_section_address != -1) &&
+                     (object_file_get(*object_file, symbol_ptr->value) == 0))
+                    error_at_line(ERROR_SEMANTIC, line_number, "Division by zero");
+            }
+            
             object_file_add(object_file, symbol_ptr->value + offset);
         }
         /*
