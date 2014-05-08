@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         fprintf(stderr, "ERROR: Wrong number of arguments\n");
-        fprintf(stderr, "Usage: assembler <file>\n");
+        fprintf(stderr, "Usage: simulator <input>\n");
         exit(-1);
     }
     filename = argv[1];

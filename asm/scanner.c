@@ -57,7 +57,7 @@ void scan_line_elements(element_t *el, char *line)
                 strcpy(el->operand2, token);
                 break;
             default:
-                error(ERROR_SCANNER, "Not a valid state %d Last token: %s", state, token);
+                break;
         }
         ++state;
         token = strtok(NULL, " ,\t");

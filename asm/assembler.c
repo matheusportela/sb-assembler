@@ -124,6 +124,9 @@ void assemble(char *input, char *output)
                     evaluate_operand2(&elements,
                                       instruction_size, &symbols_table, &object_file,
                                       line_number);
+                else if (instruction_size == 3) /* Doesn't have operand2 but requires it */
+                    error_at_line(ERROR_SYNTACTIC, line_number, "Instruction \"%s\" "
+                                  "requires two arguments", elements.operation);
             }
             /* Generate code for directive */
             else

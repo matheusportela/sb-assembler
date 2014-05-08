@@ -1,3 +1,11 @@
+/**
+ * @file   main.c
+ * @author Matheus Vieira Portela
+ * @date   01/05/2014
+ *
+ * @brief  Assembler for didactic assembly language
+ */
+
 #include "assembler.h"
 
 void parse_arguments(int argc, char **argv, char **infile, char **prefile, char **outfile);
