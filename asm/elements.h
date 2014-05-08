@@ -12,12 +12,14 @@
 #ifndef _ELEMENTS_H_
 #define _ELEMENTS_H_
 
+#define ELEMENT_MAX_SIZE 100
+
 typedef struct
 {
-    char label[80];
-    char operation[80];
-    char operand1[80];
-    char operand2[80];
+    char label[ELEMENT_MAX_SIZE];
+    char operation[ELEMENT_MAX_SIZE];
+    char operand1[ELEMENT_MAX_SIZE];
+    char operand2[ELEMENT_MAX_SIZE];
 } element_t;
 
 void element_init(element_t *el);

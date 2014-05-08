@@ -1,26 +1,23 @@
 CC = gcc
-CFLAGS = -ansi -Wall -g -arch x86_64
+CFLAGS = -ansi -Wall -g
 
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 HEADERS = $(SOURCES:.c=.h)
-EXECUTABLES = test_linked_list
+EXECUTABLES = ../bin/assembler
 
-LIBS = # [Link para as bibliotecas]
-
-INC = -I. # [Coloque as demais pastas para arquivos-cabeçalho aqui]
-DEF = # [Quaisquer definições]
+INC = -I.
 
 .PHONY: all
 all: $(SOURCES) $(EXECUTABLES)
 
 # Create executable file
 $(EXECUTABLES): $(OBJECTS)
-	$(CC) $(CFLAGS) -O2 -o $@ $(OBJECTS) $(LIBS)
+	$(CC) -O2 -o $@ $^
 	
 # Create object files
 .c.o:
-	$(CC) $(CFLAGS) $(INC) $(DEF) -c $< -o $@
+	$(CC) $(CFLAGS) $(INC) -c $<
 
 .PHONY: print
 print:

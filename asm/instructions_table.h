@@ -11,6 +11,21 @@
 
 #include "hash_table.h"
 
+#define ADD_OPCODE 0x1
+#define SUB_OPCODE 0x2
+#define MULT_OPCODE 0x3
+#define DIV_OPCODE 0x4
+#define JMP_OPCODE 0x5
+#define JMPN_OPCODE 0x6
+#define JMPP_OPCODE 0x7
+#define JMPZ_OPCODE 0x8
+#define COPY_OPCODE 0x9
+#define LOAD_OPCODE 0xA
+#define STORE_OPCODE 0xB
+#define INPUT_OPCODE 0xC
+#define OUTPUT_OPCODE 0xD
+#define STOP_OPCODE 0xE
+
 typedef struct
 {
     int size;

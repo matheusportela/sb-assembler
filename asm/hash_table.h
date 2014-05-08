@@ -68,8 +68,8 @@
 #include "linked_list.h"
 
 #define HASH_TABLE_SIZE 10
-#define HASH_TABLE_KEY_SIZE 80
-#define HASH_TABLE_NAME_SIZE 80
+#define HASH_TABLE_KEY_SIZE 100
+#define HASH_TABLE_NAME_SIZE 100
 
 typedef struct
 {

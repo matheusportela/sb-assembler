@@ -11,16 +11,14 @@
 
 #include "hash_table.h"
 
+/**
+ * Boilerplate for directives table.
+ */
 typedef struct
 {
-    int size;
-    int (*function)(void);
 } directive_t;
 
 void directives_table_init(hash_table_t *directives_table);
-void directives_table_add(hash_table_t *directives_table, char *label, int size, int (*function)(void));
-
-int directives_run_space();
-int directives_run_const();
+void directives_table_add(hash_table_t *directives_table, char *label);
 
 #endif /* _DIRECTIVES_TABLE_H_ */

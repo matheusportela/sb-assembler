@@ -86,7 +86,8 @@ unsigned int hash_function(char *key)
     int i;
     
     /*
-     * Multiply the old hash by 31 and add the current character
+     * Multiply the old hash by 31 and add the current character.
+     * It is faster to shift by 5 (multiply by 32) and subtract one hash value.
      */
     for (i = 0; key[i] != '\0'; ++i)
         hash_value = (unsigned int)key[i] + (hash_value << 5) - hash_value;

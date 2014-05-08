@@ -11,17 +11,15 @@
 /**
  * Opens a file in reading mode and check for erros.
  * @param filename the name of the file to be opened.
+ * @param mode the opening mode (e.g. 'r' for read, 'w' for write, or 'a' for append)
  * @return pointer to the opened file struct.
  */
-FILE* file_open(char *filename)
+FILE* file_open(char *filename, char *mode)
 {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, mode);
     
     if (!fp)
-    {
-        fprintf(stderr, "ERROR: Cannot open file %s\n", filename);
-        exit(-1);
-    }
+        error(ERROR_FILE, "Cannot open file %s", filename);
     
     return fp;
 }
@@ -69,10 +67,8 @@ int file_read_line(FILE *fp, char line[])
     for (i = 0; (c != '\n') && (c != EOF); i++)
     {
         if (i >= FILE_LINE_LENGTH)
-        {
-            fprintf(stderr, "WARNING: Trying to read a line larger than the line buffer "
-                             "size\n");
-        }
+            error(ERROR_FILE, "Trying to read a line larger than the line buffer "
+                              "size");
         
         c = getc(fp);
         line[i] = c;
