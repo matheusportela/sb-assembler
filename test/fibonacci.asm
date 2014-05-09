@@ -1,3 +1,9 @@
+; @file   fibonacci.asm
+; @author Matheus Vieira Portela
+; @date   07/05/2014
+;
+; @brief Print Fibonacci series until a limit value (given by input)
+
 SECTION TEXT
 	COPY ZERO, OLDER
 	COPY ONE, OLD[0]
