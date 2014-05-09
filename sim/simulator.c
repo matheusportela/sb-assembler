@@ -1,3 +1,11 @@
+/**
+ * @file   simulator.c
+ * @author Matheus Vieira Portela
+ * @date   30/05/2014
+ *
+ * @brief  Simulator for pseudo-assembly language.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
