@@ -1,6 +1,7 @@
 /**
  * @file   linked_list.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   07/04/2014
  *
  * @brief  Implements generic linked list functions

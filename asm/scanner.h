@@ -1,6 +1,7 @@
 /**
  * @file   scanner.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   06/04/2014
  *
  * @brief  Defines scanner functions

@@ -1,6 +1,7 @@
 /**
  * @file   file.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   06/04/2014
  *
  * @brief  Implements utility functions over files

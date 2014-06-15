@@ -1,6 +1,7 @@
 /**
  * @file   simulator.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   30/05/2014
  *
  * @brief  Simulator for pseudo-assembly language.

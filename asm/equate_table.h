@@ -1,6 +1,7 @@
 /**
  * @file   equate_table.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   18/04/2014
  *
  * @brief  Declares the equate directives table

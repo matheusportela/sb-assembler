@@ -1,6 +1,7 @@
 /**
  * @file   main.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   01/05/2014
  *
  * @brief  Assembler for didactic assembly language

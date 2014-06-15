@@ -1,6 +1,7 @@
 /**
  * @file   hash_table.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   10/04/2014
  *
  * @brief  Declares hash table node struct, hash table struct and hash table functions

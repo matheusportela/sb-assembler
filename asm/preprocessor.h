@@ -1,6 +1,7 @@
 /**
  * @file   preprocessor.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   17/04/2014
  *
  * @brief  Execute pre-processing in a pseudo-assembly source file

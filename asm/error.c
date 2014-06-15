@@ -1,6 +1,7 @@
 /**
  * @file   error.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   21/04/2014
  *
  * @brief  Implements error printing functions

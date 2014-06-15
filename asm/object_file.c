@@ -1,6 +1,7 @@
 /**
  * @file   object_file.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   18/04/2014
  *
  * @brief  Implements object file functions

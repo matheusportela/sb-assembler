@@ -1,6 +1,7 @@
 /**
  * @file   object_file.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   18/04/2014
  *
  * @brief  Generates an object file

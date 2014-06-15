@@ -1,6 +1,7 @@
 /**
  * @file   instructions_table.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   06/04/2014
  *
  * @brief  Implements the initialization of the instructions and opcodes tables

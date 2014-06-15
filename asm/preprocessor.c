@@ -1,6 +1,7 @@
 /**
  * @file   preprocessor.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   17/04/2014
  *
  * @brief  Implements pre-processing

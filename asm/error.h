@@ -1,6 +1,7 @@
 /**
  * @file   error.h
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   21/04/2014
  *
  * @brief  Declares error printing functions

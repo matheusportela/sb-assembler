@@ -1,6 +1,7 @@
 /**
  * @file   symbols_table.c
  * @author Matheus Vieira Portela
+ * @author Lucas de Levy Oliveira
  * @date   10/04/2014
  *
  * @brief  Implements the initialization of the symbols tables
