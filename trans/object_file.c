@@ -41,7 +41,6 @@ void object_file_write(char *filename, object_file_t object)
 void object_file_read(char *filename, object_file_t *object_ptr)
 {
     FILE *fp = fopen(filename, "rb");
-    int i;
     
     /* Reading header */
     fread(&object_ptr->size, sizeof(int), 1, fp); /* Program size */
@@ -50,12 +49,6 @@ void object_file_read(char *filename, object_file_t *object_ptr)
     /* Reading program */
     object_ptr->program = malloc(sizeof(obj_t)*object_ptr->size);
     fread(object_ptr->program, sizeof(obj_t), object_ptr->size, fp);
-    
-    /* Printing to the screen */
-    printf("\n===== %s =====\n\n", filename);
-    for (i = 0; i < object_ptr->size; ++i)
-        printf("(addr. %d): %d\n", i, object_ptr->program[i]);
-    printf("\n==========\n");
     
     fclose(fp);
 }

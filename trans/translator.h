@@ -1,8 +1,8 @@
 /**
- * @file   assembler.h
+ * @file   translator.h
  * @author Matheus Vieira Portela
  * @author Lucas de Levy Oliveira
- * @date   06/04/2014
+ * @date   29/05/2014
  *
  * @brief  One-pass assembler for educational assembly language
  *
@@ -43,67 +43,4 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "error.h"
-#include "file.h"
-#include "object_file.h"
-#include "elements.h"
-#include "scanner.h"
-#include "directives_table.h"
-#include "instructions_table.h"
-#include "symbols_table.h"
-#include "linked_list.h"
-#include "hash_table.h"
-#include "preprocessor.h"
-
-/**
- * All possible program sections
- */
-typedef enum
-{
-    SECTION_UNKNOWN,
-    SECTION_DATA,
-    SECTION_TEXT,
-} section_t;
-
-/**
- * Used for checking if writing to a constant memory address. Includes the line number for
- * error printing purposes.
- */
-typedef struct
-{
-    char label[100];
-    int line_number;
-} write_t;
-
-/**
- * Boilerplate for constant table
- */
-typedef struct
-{
-} const_t;
-
 void translate(char *input, char *output);
-void init_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                 hash_table_t *directives_table, hash_table_t *constants_table);
-void destroy_tables(hash_table_t *symbols_table, hash_table_t *instructions_table,
-                    hash_table_t *directives_table, hash_table_t *constants_table);
-void evaluate_label(element_t *elements, hash_table_t *symbols_table,
-                    object_file_t *object_file_ptr, int line_number);
-int evaluate_instruction(element_t *elements,
-                         hash_table_t *instructions_table, section_t section,
-                         int line_number, object_file_t *object_file, list_t *write_list,
-                         int *write_num);
-int process_operand(char *output, char *label, int line_number);
-void evaluate_operand1(element_t *elements, int instruction_size,
-                       hash_table_t *symbols_table, object_file_t *object_file,
-                       int line_number);
-void evaluate_operand2(element_t *elements, int instruction_size,
-                       hash_table_t *symbols_table, object_file_t *object_file,
-                       int line_number);
-int evaluate_directive(element_t *elements,
-                       hash_table_t *directives_table, hash_table_t *constants_table,
-                       section_t *section, int *is_data_section_defined,
-                       int *is_text_section_defined, int line_number,
-                       object_file_t *object_file);
-void check_undefined_labels(hash_table_t *symbols_table);
-void check_writing_at_const(hash_table_t *constants_table, list_t *write_list, int write_num);

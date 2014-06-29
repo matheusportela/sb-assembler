@@ -2,14 +2,17 @@
  * @file   main.c
  * @author Matheus Vieira Portela
  * @author Lucas de Levy Oliveira
- * @date   01/05/2014
+ * @date   29/05/2014
  *
- * @brief  Assembler for didactic assembly language
+ * @brief  Translator for IA-32 assembly language
  */
 
+#include "assembler.h"
 #include "translator.h"
 
-void parse_arguments(int argc, char **argv, char **infile, char **prefile, char **outfile);
+void parse_arguments(int argc, char **argv, char **infile, char **outfile);
+void make_preprocess_filename(char **infile, char **prefile);
+void make_binary_filename(char **infile, char **binfile);
 
 /**
  * Main function. Parse the arguments, preprocess the input file and assemble the
@@ -17,11 +20,15 @@ void parse_arguments(int argc, char **argv, char **infile, char **prefile, char 
  */
 int main(int argc, char **argv)
 {
-    char *infile, *prefile, *outfile;
+    char *infile, *outfile;
+    char *prefile, *binfile;
     
-    parse_arguments(argc, argv, &infile, &prefile, &outfile);
+    parse_arguments(argc, argv, &infile, &outfile);
+    make_preprocess_filename(&infile, &prefile);
+    make_binary_filename(&infile, &binfile);
     preprocess(infile, prefile);
-    translate(prefile, outfile);
+    assemble(prefile, binfile);
+    translate(binfile, outfile);
     
     return 0;
 }
@@ -31,22 +38,36 @@ int main(int argc, char **argv)
  * @param argc number of arguments
  * @param argv command line arguments
  * @param infile input file name with code in assembly
- * @param prefile output file name for preprocessed code
  * @param outfile output file name for object code
  */
-void parse_arguments(int argc, char **argv, char **infile, char **prefile, char **outfile)
+void parse_arguments(int argc, char **argv, char **infile, char **outfile)
 {
-    if (argc != 4)
+    if (argc != 3)
         error(ERROR_COMMAND_LINE, "Wrong number of arguments\n"
-              "Usage: assembler <input> <preprocessing> <output>");
+              "Usage: translator <input> <output>");
     
     *infile = argv[1];
-    *prefile = argv[2];
-    *outfile = argv[3];
+    *outfile = argv[2];
+    
     
     printf("===== Parsing arguments =====\n");
     printf("Input file: %s\n", *infile);
-    printf("Pre-processing file: %s\n", *prefile);
     printf("Output file: %s\n", *outfile);
     printf("\n");
+}
+
+void make_preprocess_filename(char **infile, char **prefile)
+{
+    *prefile = malloc(sizeof(char)*(strlen(*infile) + 4));
+    strcpy(*prefile, *infile);
+    strcat(*prefile, ".pre");
+    printf("Preprocess filename: %s\n", *prefile);
+}
+
+void make_binary_filename(char **infile, char **binfile)
+{
+    *binfile = malloc(sizeof(char)*(strlen(*infile) + 4));
+    strcpy(*binfile, *infile);
+    strcat(*binfile, ".bin");
+    printf("Binary filename: %s\n", *binfile);
 }

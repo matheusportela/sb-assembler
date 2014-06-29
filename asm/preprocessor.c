@@ -140,7 +140,6 @@ void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate
             continue;
         }
         
-        printf("%s", line_buffer);
         fprintf(fout, "%s", line_buffer);
     }
     
