@@ -249,4 +249,6 @@ int main(int argc, char **argv)
                 exit(2);
         }
     }
+    
+    return 0;
 }
