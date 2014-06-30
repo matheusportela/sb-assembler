@@ -13,6 +13,7 @@
 void parse_arguments(int argc, char **argv, char **infile, char **outfile);
 void make_preprocess_filename(char **infile, char **prefile);
 void make_binary_filename(char **infile, char **binfile);
+void make_opcodes_filename(char **infile, char **opfile);
 
 /**
  * Main function. Parse the arguments, preprocess the input file and assemble the
@@ -21,14 +22,19 @@ void make_binary_filename(char **infile, char **binfile);
 int main(int argc, char **argv)
 {
     char *infile, *outfile;
-    char *prefile, *binfile;
+    char *prefile, *binfile, *opfile;
     
     parse_arguments(argc, argv, &infile, &outfile);
     make_preprocess_filename(&infile, &prefile);
     make_binary_filename(&infile, &binfile);
+    make_opcodes_filename(&outfile, &opfile);
     preprocess(infile, prefile);
     assemble(prefile, binfile);
-    translate(binfile, outfile);
+    translate(binfile, outfile, opfile);
+    
+    free(prefile);
+    free(binfile);
+    free(opfile);
     
     return 0;
 }
@@ -70,4 +76,12 @@ void make_binary_filename(char **infile, char **binfile)
     strcpy(*binfile, *infile);
     strcat(*binfile, ".bin");
     printf("Binary filename: %s\n", *binfile);
+}
+
+void make_opcodes_filename(char **infile, char **opfile)
+{
+    *opfile = malloc(sizeof(char)*(strlen(*infile) + 4));
+    strcpy(*opfile, *infile);
+    strcat(*opfile, ".ops");
+    printf("Opcodes filename: %s\n", *opfile);
 }

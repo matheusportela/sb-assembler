@@ -4,7 +4,7 @@ CFLAGS = -ansi -Wall -g
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 HEADERS = $(SOURCES:.c=.h)
-EXECUTABLES = ../bin/tradutor
+EXECUTABLES = ../bin/carregador
 
 INC = -I.
 
@@ -13,7 +13,7 @@ all: $(SOURCES) $(EXECUTABLES)
 
 # Create executable file
 $(EXECUTABLES): $(OBJECTS)
-	$(CC) -O2 -o $@ $^
+	$(CC) -O2 -o $@ $^ -lelf
 	
 # Create object files
 .c.o:

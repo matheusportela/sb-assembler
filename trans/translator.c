@@ -35,9 +35,9 @@
  * @param input Source code file name.
  * @param output Object file name.
  */
-void translate(char *input, char *output)
+void translate(char *input, char *output, char *opfile)
 {
-    FILE *fout;
+    FILE *fout, *fops;
     object_file_t object;
     hash_table_t asm_opcodes_table;
     hash_table_t translation_table;
@@ -61,6 +61,7 @@ void translate(char *input, char *output)
     printf("===== Translating =====\n");
     
     fout = file_open(output, "w");
+    fops = file_open(opfile, "w");
     asm_opcodes_table_init(&asm_opcodes_table);
     translation_table_init(&translation_table);
     object_file_read(input, &object);
@@ -75,7 +76,12 @@ void translate(char *input, char *output)
     printf("Text section: %d\nData section: %d\n\n", object.text_section_address, object.data_section_address);
     
     /* Analysing the instructions */
-    fprintf(fout, "section .text\n");
+    fprintf(fout, "extern LerInteiro\n"
+                  "extern EscreverInteiro\n"
+                  "\n"
+                  "section .text\n"
+                  "global _start\n"
+                  "_start:\n");
     for (i = object.text_section_address; i < object.size; ++i)
     {
         /* Find the instruction from the ASM opcode value */
@@ -176,7 +182,8 @@ void translate(char *input, char *output)
         else if (strcmp(operation, "JMPZ") == 0)
             sprintf(trans_operation, "jz %s", label1);
         else if (strcmp(operation, "COPY") == 0)
-            sprintf(trans_operation, "mov word %s, %s", label2, label1);
+            sprintf(trans_operation, "mov word bx, [%s]\n"
+                                     "mov word [%s], bx", label2, label1);
         else if (strcmp(operation, "LOAD") == 0)
             sprintf(trans_operation, "mov word ax, [%s]", label1);
         else if (strcmp(operation, "STORE") == 0)
@@ -188,8 +195,8 @@ void translate(char *input, char *output)
             sprintf(trans_operation, "mov word bx, [%s]\n"
                                      "call EscreverInteiro", label1);
         else if (strcmp(operation, "STOP") == 0)
-            sprintf(trans_operation, "move eax, 1\n"
-			                         "move ebx, 0\n"
+            sprintf(trans_operation, "mov eax, 1\n"
+			                         "mov ebx, 0\n"
 			                         "int 80h");
         
         printf("%s\n", trans_operation);
@@ -226,7 +233,9 @@ void translate(char *input, char *output)
     {
         printf("%s", output_lines[i]);
         fprintf(fout, "%s", output_lines[i]);
+        free(output_lines[i]);
     }
+    free(output_lines);
     
     fprintf(fout, "\nsection .data\n");
     for (i = object.data_section_address; i < object.size; ++i)
@@ -238,7 +247,7 @@ void translate(char *input, char *output)
     
         value = object_file_get(object, i);
         sprintf(trans_operation, "DATA%d dw %d", (i - object.data_section_address), value);
-        printf("%d -> %s\n", value, trans_operation);
+        printf("%s\n", trans_operation);
         
         fprintf(fout, "%s\n", trans_operation);
     }
@@ -247,4 +256,5 @@ void translate(char *input, char *output)
     hash_destroy(&translation_table);
     free(labels_list);
     fclose(fout);
+    fclose(fops);
 }
