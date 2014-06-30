@@ -27,6 +27,7 @@ void object_file_write(char *filename, object_file_t object)
     /* Writing header */
     fwrite(&object.size, sizeof(int), 1, fp); /* Program size */
     fwrite(&object.text_section_address, sizeof(int), 1, fp); /* Text section address */
+    fwrite(&object.data_section_address, sizeof(int), 1, fp); /* Data section address */
     
     /* Writing program */
     fwrite(object.program, sizeof(obj_t), object.size, fp);
@@ -45,6 +46,7 @@ void object_file_read(char *filename, object_file_t *object_ptr)
     /* Reading header */
     fread(&object_ptr->size, sizeof(int), 1, fp); /* Program size */
     fread(&object_ptr->text_section_address, sizeof(int), 1, fp); /* Text section address */
+    fread(&object_ptr->data_section_address, sizeof(int), 1, fp); /* Data section address */
     
     /* Reading program */
     object_ptr->program = malloc(sizeof(obj_t)*object_ptr->size);
