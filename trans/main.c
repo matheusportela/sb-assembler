@@ -50,7 +50,7 @@ void parse_arguments(int argc, char **argv, char **infile, char **outfile)
 {
     if (argc != 3)
         error(ERROR_COMMAND_LINE, "Wrong number of arguments\n"
-              "Usage: translator <input> <output>");
+              "Usage: tradutor <input> <output>");
     
     *infile = argv[1];
     *outfile = argv[2];

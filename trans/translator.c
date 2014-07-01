@@ -104,58 +104,47 @@ void translate(char *input, char *output, char *opfile)
         {
             instruction_to_line_table[i+j+1] = line_number;
         
-            if (((strcmp(operation, "JMP") == 0)
-                 || (strcmp(operation, "JMPN") == 0)
-                 || (strcmp(operation, "JMPP") == 0)
-                 || (strcmp(operation, "JMPZ") == 0)
-                 || (strcmp(operation, "COPY") == 0)
-                 || (strcmp(operation, "LOAD") == 0)
-                 || (strcmp(operation, "STORE") == 0)
-                 || (strcmp(operation, "INPUT") == 0)
-                 || (strcmp(operation, "OUTPUT") == 0))
-               && (labels_list[args[j]] == -1))
+            if (object.data_section_address < object.text_section_address)
             {
-                if (object.data_section_address < object.text_section_address)
+                if (args[j] < object.text_section_address)
                 {
-                    if (args[j] < object.text_section_address)
-                    {
-                        /* Must be in data section */
-                        if (j == 0)
-                            sprintf(label1, "DATA%d", args[j] - object.data_section_address);
-                        else
-                            sprintf(label2, "DATA%d", args[j] - object.data_section_address);
-                    }
+                    /* Must be in data section */
+                    if (j == 0)
+                        sprintf(label1, "DATA%d", args[j] - object.data_section_address);
                     else
-                    {
-                        /* Must be in text section */
-                        if (j == 0)
-                            sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
-                        else
-                            sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
-                        labels_list[args[j]] = args[j] - object.text_section_address;
-                    }
+                        sprintf(label2, "DATA%d", args[j] - object.data_section_address);
                 }
                 else
                 {
-                    if (args[j] < object.data_section_address)
-                    {
-                        /* Must be in text section */
-                        if (j == 0)
-                            sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
-                        else
-                            sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
-                        labels_list[args[j]] = args[j] - object.text_section_address;
-                    }
+                    /* Must be in text section */
+                    if (j == 0)
+                        sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
                     else
-                    {
-                        /* Must be in data section */
-                        if (j == 0)
-                            sprintf(label1, "DATA%d", args[j] - object.data_section_address);
-                        else
-                            sprintf(label2, "DATA%d", args[j] - object.data_section_address);
-                    }
+                        sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
+                    labels_list[args[j]] = args[j] - object.text_section_address;
                 }
             }
+            else
+            {
+                if (args[j] < object.data_section_address)
+                {
+                    /* Must be in text section */
+                    if (j == 0)
+                        sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
+                    else
+                        sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
+                    labels_list[args[j]] = args[j] - object.text_section_address;
+                }
+                else
+                {
+                    /* Must be in data section */
+                    if (j == 0)
+                        sprintf(label1, "DATA%d", args[j] - object.data_section_address);
+                    else
+                        sprintf(label2, "DATA%d", args[j] - object.data_section_address);
+                }
+            }
+            
             printf("%d ", args[j]);
         }
         printf("-> ");
@@ -166,24 +155,29 @@ void translate(char *input, char *output, char *opfile)
         strcpy(trans_operation, translation_ptr->instruction);
         
         if (strcmp(operation, "ADD") == 0)
-            sprintf(trans_operation, "add ax, %d", args[0]);
+            sprintf(trans_operation, "add word ax, [%s]", label1);
         else if (strcmp(operation, "SUB") == 0)
-            sprintf(trans_operation, "sub ax, %d", args[0]);
+            sprintf(trans_operation, "sub word ax, [%s]", label1);
         else if (strcmp(operation, "MULT") == 0)
-            sprintf(trans_operation, "mul %d", args[0]);
+            sprintf(trans_operation, "mov word bx, [%s]\n"
+                                     "imul word bx", label1);
         else if (strcmp(operation, "DIV") == 0)
-            sprintf(trans_operation, "div %d", args[0]);
+            sprintf(trans_operation, "mov word bx, [%s]\n"
+                                     "idiv word bx", label1);
         else if (strcmp(operation, "JMP") == 0)
             sprintf(trans_operation, "jmp %s", label1);
         else if (strcmp(operation, "JMPN") == 0)
-            sprintf(trans_operation, "js %s", label1);
+            sprintf(trans_operation, "cmp ax, 0\n"
+                                     "jl %s", label1);
         else if (strcmp(operation, "JMPP") == 0)
-            sprintf(trans_operation, "jns %s", label1);
+            sprintf(trans_operation, "cmp ax, 0\n"
+                                     "jg %s", label1);
         else if (strcmp(operation, "JMPZ") == 0)
-            sprintf(trans_operation, "jz %s", label1);
+            sprintf(trans_operation, "cmp ax, 0\n"
+                                     "je %s", label1);
         else if (strcmp(operation, "COPY") == 0)
             sprintf(trans_operation, "mov word bx, [%s]\n"
-                                     "mov word [%s], bx", label2, label1);
+                                     "mov word [%s], bx", label1, label2);
         else if (strcmp(operation, "LOAD") == 0)
             sprintf(trans_operation, "mov word ax, [%s]", label1);
         else if (strcmp(operation, "STORE") == 0)
