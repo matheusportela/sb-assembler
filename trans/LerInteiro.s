@@ -7,9 +7,6 @@ section .text
 global LerInteiro
 LerInteiro:
 	    push eax		    ;push eax
-        ;push ebx            ;push ebx
-        ;push ecx            ;push ecx
-        ;push edx            ;push edx
 
 	    mov eax,3	    	;sys_read
 	    mov ebx,0		    ;ponteiro para stdout
@@ -56,11 +53,6 @@ _end:  	pop eax             ;pop eax
 
 _ret:  	mov bx, ax
         add esp, 4
-        ;pop edx             ;pop edx
-        ;pop ecx             ;pop ecx
-        ;pop ebx             ;pop ebx
 	    pop eax             ;pop eax
 
         ret
-        ;mov eax,1           ;REMOVE
-        ;int 80h             ;REMOVE

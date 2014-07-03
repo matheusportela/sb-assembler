@@ -162,10 +162,12 @@ void translate(char *input, char *output)
             /* add word ax, [label] */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x03;
-            opcodes[opcodes_size + 2] = 0x06;
+            opcodes[opcodes_size + 2] = 0x05;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
         }
         else if (strcmp(operation, "SUB") == 0)
         {
@@ -174,10 +176,12 @@ void translate(char *input, char *output)
             /* sub word ax, [label] */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x2B;
-            opcodes[opcodes_size + 2] = 0x06;
+            opcodes[opcodes_size + 2] = 0x05;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
         }
         else if (strcmp(operation, "MULT") == 0)
         {
@@ -187,10 +191,12 @@ void translate(char *input, char *output)
             /* mov word bx, [label] */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x8B;
-            opcodes[opcodes_size + 2] = 0x1E;
+            opcodes[opcodes_size + 2] = 0x1D;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
             
             /* imul word bx */
             opcodes[opcodes_size] = 0x66;
@@ -206,21 +212,24 @@ void translate(char *input, char *output)
                                      "idiv word bx", label1);
                                      
             /* cwd */
-            opcodes[opcodes_size] = 0x99;
-            opcodes_size += 1;
+            opcodes[opcodes_size] = 0x66;
+            opcodes[opcodes_size + 1] = 0x99;
+            opcodes_size += 2;
             
             /* mov word bx, [label] */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x8B;
-            opcodes[opcodes_size + 2] = 0x1E;
+            opcodes[opcodes_size + 2] = 0x1D;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
             
             /* idiv word bx */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0xF7;
-            opcodes[opcodes_size + 2] = 0x3E;
+            opcodes[opcodes_size + 2] = 0xFB;
             opcodes_size += 3;
         }
         else if (strcmp(operation, "JMP") == 0)
@@ -228,12 +237,9 @@ void translate(char *input, char *output)
             sprintf(trans_operation, "jmp %s", label1);
             
             /* jmp label */
-            opcodes[opcodes_size] = 0xEA;
-            opcodes[opcodes_size + 1] = 0x00; /* don't care */
-            opcodes[opcodes_size + 2] = 0x00; /* don't care */
-            opcodes[opcodes_size + 3] = 0x00; /* don't care */
-            opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size] = 0xEB;
+            opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
+            opcodes_size += 2;
         }
         else if (strcmp(operation, "JMPN") == 0)
         {
@@ -242,18 +248,15 @@ void translate(char *input, char *output)
             
             /* cmp ax, 0 */
             opcodes[opcodes_size] = 0x66;
-            opcodes[opcodes_size + 1] = 0x3D;
-            opcodes[opcodes_size + 2] = 0x00;
-            opcodes_size += 3;
+            opcodes[opcodes_size + 1] = 0x83;
+            opcodes[opcodes_size + 2] = 0xF8;
+            opcodes[opcodes_size + 3] = 0x00;
+            opcodes_size += 4;
             
             /* jl label */
-            opcodes[opcodes_size] = 0x0F;
-            opcodes[opcodes_size + 1] = 0x8C;
-            opcodes[opcodes_size + 2] = 0x00; /* don't care */
-            opcodes[opcodes_size + 3] = 0x00; /* don't care */
-            opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes[opcodes_size + 5] = 0x00; /* don't care */
-            opcodes_size += 6;
+            opcodes[opcodes_size] = 0x7C;
+            opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
+            opcodes_size += 2;
         }
         else if (strcmp(operation, "JMPP") == 0)
         {
@@ -262,18 +265,15 @@ void translate(char *input, char *output)
             
             /* cmp ax, 0 */
             opcodes[opcodes_size] = 0x66;
-            opcodes[opcodes_size + 1] = 0x3D;
-            opcodes[opcodes_size + 2] = 0x00;
-            opcodes_size += 3;
+            opcodes[opcodes_size + 1] = 0x83;
+            opcodes[opcodes_size + 2] = 0xF8;
+            opcodes[opcodes_size + 3] = 0x00;
+            opcodes_size += 4;
             
             /* jg label */
-            opcodes[opcodes_size] = 0x0F;
-            opcodes[opcodes_size + 1] = 0x8F;
-            opcodes[opcodes_size + 2] = 0x00; /* don't care */
-            opcodes[opcodes_size + 3] = 0x00; /* don't care */
-            opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes[opcodes_size + 5] = 0x00; /* don't care */
-            opcodes_size += 6;
+            opcodes[opcodes_size] = 0x7F;
+            opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
+            opcodes_size += 2;
         }
         else if (strcmp(operation, "JMPZ") == 0)
         {
@@ -282,18 +282,15 @@ void translate(char *input, char *output)
             
             /* cmp ax, 0 */
             opcodes[opcodes_size] = 0x66;
-            opcodes[opcodes_size + 1] = 0x3D;
-            opcodes[opcodes_size + 2] = 0x00;
-            opcodes_size += 3;
+            opcodes[opcodes_size + 1] = 0x83;
+            opcodes[opcodes_size + 2] = 0xF8;
+            opcodes[opcodes_size + 3] = 0x00;
+            opcodes_size += 4;
             
             /* je label */
-            opcodes[opcodes_size] = 0x0F;
-            opcodes[opcodes_size + 1] = 0x84;
-            opcodes[opcodes_size + 2] = 0x00; /* don't care */
-            opcodes[opcodes_size + 3] = 0x00; /* don't care */
-            opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes[opcodes_size + 5] = 0x00; /* don't care */
-            opcodes_size += 6;
+            opcodes[opcodes_size] = 0x74;
+            opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
+            opcodes_size += 2;
         }
         else if (strcmp(operation, "COPY") == 0)
         {
@@ -303,18 +300,22 @@ void translate(char *input, char *output)
             /* mov word bx, [label] */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x8B;
-            opcodes[opcodes_size + 2] = 0x1E;
+            opcodes[opcodes_size + 2] = 0x1D;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
             
             /* mov word [label], bx */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x89;
-            opcodes[opcodes_size + 2] = 0x1E;
+            opcodes[opcodes_size + 2] = 0x1D;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
         }
         else if (strcmp(operation, "LOAD") == 0)
         {
@@ -322,11 +323,12 @@ void translate(char *input, char *output)
             
             /* mov word ax, [label] */
             opcodes[opcodes_size] = 0x66;
-            opcodes[opcodes_size + 1] = 0x8B;
-            opcodes[opcodes_size + 2] = 0x06;
+            opcodes[opcodes_size + 1] = 0xA1;
+            opcodes[opcodes_size + 2] = 0x00; /* don't care */
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes_size += 6;
         }
         else if (strcmp(operation, "STORE") == 0)
         {
@@ -334,11 +336,12 @@ void translate(char *input, char *output)
             
             /* mov word [label], ax */
             opcodes[opcodes_size] = 0x66;
-            opcodes[opcodes_size + 1] = 0x89;
-            opcodes[opcodes_size + 2] = 0x06;
+            opcodes[opcodes_size + 1] = 0xA3;
+            opcodes[opcodes_size + 2] = 0x00; /* don't care */
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes_size += 6;
         }
         else if (strcmp(operation, "INPUT") == 0)
         {
@@ -346,37 +349,45 @@ void translate(char *input, char *output)
                                      "mov word [%s], bx", label1);
             
             /* call LerInteiro */
-            opcodes[opcodes_size] = 0xFF;
-            opcodes[opcodes_size + 1] = 0x16;
+            opcodes[opcodes_size] = 0xE8;
+            opcodes[opcodes_size + 1] = 0x00;
             opcodes[opcodes_size + 2] = 0x00; /* LerInteiro addr */
             opcodes[opcodes_size + 3] = 0x00;
             opcodes[opcodes_size + 4] = 0x00;
-            opcodes[opcodes_size + 5] = 0x00;
-            opcodes_size += 6;
+            opcodes_size += 5;
             
             /* mov word [label], bx */
             opcodes[opcodes_size] = 0x66;
             opcodes[opcodes_size + 1] = 0x89;
-            opcodes[opcodes_size + 2] = 0x1E;
+            opcodes[opcodes_size + 2] = 0x1D;
             opcodes[opcodes_size + 3] = 0x00; /* don't care */
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
-            opcodes_size += 5;
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
         }
         else if (strcmp(operation, "OUTPUT") == 0)
         {
             sprintf(trans_operation, "mov word bx, [%s]\n"
                                      "call EscreverInteiro", label1);
             
-            /* mov word [label], bx */
-            opcodes[opcodes_size] = 0xFF;
-            opcodes[opcodes_size + 1] = 0x16;
+            /* mov word bx, [label] */
+            opcodes[opcodes_size] = 0x66;
+            opcodes[opcodes_size + 1] = 0x8B;
+            opcodes[opcodes_size + 2] = 0x1D;
+            opcodes[opcodes_size + 3] = 0x00; /* don't care */
+            opcodes[opcodes_size + 4] = 0x00; /* don't care */
+            opcodes[opcodes_size + 5] = 0x00; /* don't care */
+            opcodes[opcodes_size + 6] = 0x00; /* don't care */
+            opcodes_size += 7;
+            
+            /* call EscreverInteiro */
+            opcodes[opcodes_size] = 0xE8;
+            opcodes[opcodes_size + 1] = 0x00;
             opcodes[opcodes_size + 2] = 0x00; /* EscreverInteiro addr */
             opcodes[opcodes_size + 3] = 0x00;
             opcodes[opcodes_size + 4] = 0x00;
-            opcodes[opcodes_size + 5] = 0x00;
-            opcodes_size += 6;
-            
-            
+            opcodes_size += 5;
         }
         else if (strcmp(operation, "STOP") == 0)
         {
@@ -392,7 +403,7 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 4] = 0x00;
             
             /* mov ebx, 0 */
-            opcodes[opcodes_size + 5] = 0xB8;
+            opcodes[opcodes_size + 5] = 0xBB;
             opcodes[opcodes_size + 6] = 0x00;
             opcodes[opcodes_size + 7] = 0x00;
             opcodes[opcodes_size + 8] = 0x00;
@@ -458,8 +469,26 @@ void translate(char *input, char *output)
     }
     
     printf("Opcodes:\n");
+    
+    j = 0;
     for (i = 0; i < opcodes_size; ++i)
-        printf("%x ", opcodes[i]);
+    {
+        printf("%2.2x", opcodes[i]);
+        
+        if (j == 15)
+        {
+            printf("\n");
+            j = 0;
+            continue;
+        }
+        
+        if ((j+1) % 4 == 0)
+        {
+            printf(" ");
+        }
+        
+        ++j;
+    }
     printf("\n");
     
     hash_destroy(&asm_opcodes_table);

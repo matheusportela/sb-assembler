@@ -6,7 +6,6 @@ output_num: resb 11
 section .text
 global EscreverInteiro
 EscreverInteiro:
-	;mov eax,1234567890 	    	;input = eax    // REMOVE AFTERWARDS
 	push eax		            ;push eax
     push ebx                    ;push ebx
     push ecx                    ;push ecx
@@ -41,5 +40,3 @@ _ret:
 	pop eax                     ;pop eax
 
 	ret
-   	;mov eax,1                   ;REMOVE
-	;int 80h                     ;REMOVE
