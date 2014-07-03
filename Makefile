@@ -1,4 +1,4 @@
-SUBDIRS = asm sim trans
+SUBDIRS = asm sim trans load
 CLEANDIRS = $(SUBDIRS:%=clean-%)
 
 .PHONY: subdirs $(SUBDIRS)

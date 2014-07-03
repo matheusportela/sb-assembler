@@ -43,4 +43,4 @@
 #include <stdlib.h>
 #include <string.h>
 
-void translate(char *input, char *output, char *opfile);
+void translate(char *input, char *output);

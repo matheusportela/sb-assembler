@@ -7,39 +7,35 @@
  * @brief  Loader for IA-32 assembly language
  */
 
-void parse_arguments(int argc, char **argv, char **infile);
-void make_output_filename(char **infile, char **outfile);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "loader.h"
+#include "error.h"
 
+void parse_arguments(int argc, char **argv, char **infile, char **outfile);
 
 int main(int argc, char **argv)
 {
     char *infile, *outfile;
     
-    parse_arguments(argc, argv, &infile);
-    make_output_filename(&infile, &outfile);
+    parse_arguments(argc, argv, &infile, &outfile);
     load(infile, outfile);
-    free(outfile);
     
     return 0;
 }
 
 void parse_arguments(int argc, char **argv, char **infile, char **outfile)
 {
-    if (argc != 2)
+    if (argc != 3)
         error(ERROR_COMMAND_LINE, "Wrong number of arguments\n"
-              "Usage: carregador <input>");
+              "Usage: carregador <input> <output>");
     
     *infile = argv[1];
+    *outfile = argv[2];
     
     printf("===== Parsing arguments =====\n");
     printf("Input file: %s\n", *infile);
+    printf("Output file: %s\n", *outfile);
     printf("\n");
-}
-
-void make_output_filename(char **infile, char **outfile)
-{
-    *outfile = malloc(sizeof(char)*(strlen(*infile) + 4));
-    strcpy(*outfile, *infile);
-    strcat(*outfile, ".out");
-    printf("Output filename: %s\n", *outfile);
 }

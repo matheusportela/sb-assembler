@@ -3,15 +3,9 @@
 #include <libelf.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
-
-/*O programa simplesmente SAI e manda 42 para o SO*/
-unsigned char code[] = {
-    0xBB, 0x2A, 0x00, 0x00, 0x00, /* movl $42, %ebx */
-    0xB8, 0x01, 0x00, 0x00, 0x00, /* movl $1, %eax */
-    0xCD, 0x80            /* int $0x80 */
-};
 
 #define LOADADDR    0x08048000 /*endereÁo virtual onde sera carregado o programa*/
 
@@ -38,17 +32,63 @@ PHDR: a tablea de cabeÁalho do Programa com informaÁıes especÌficas do progr
 +----------------------------------+
 */
 
-int read_program(char *filename)
+void assemble(char *filename)
 {
     FILE *fp = fopen(filename, "r");
-    char c;
+    char buffer[1024];
     
-    while(fgets(&c, 1, fp) != NULL)
+    /* First pass: get labels */
+    char *token;
+    
+    while (!feof(fp))
     {
-        printf("%d\n", c);
+        if (fgets(buffer, 1024, fp) != NULL)
+        {
+            token = strtok(buffer, " ");
+            if ((token != NULL) && (token[strlen(token) - 1] == ':'))
+            {
+                token[strlen(token) - 1] = '\0';
+                printf("Token: %s\n", token);
+            }
+        }
     }
     
     fclose(fp);
+}
+
+int read_program(char *filename, unsigned char *code)
+{
+    FILE *fp = fopen(filename, "r");
+    int size = 0;
+    
+    /*
+    int value;
+    
+    while (!feof(fp))
+    {
+        fscanf(fp, "%d", &value);
+        code[size] = value;
+        ++size;
+    }
+    */
+    
+    code[0] = 0xBB; /* movl $42, %ebx */
+    code[1] = 0x2A;
+    code[2] = 0x00;
+    code[3] = 0x00;
+    code[4] = 0x00;
+    code[5] = 0xB8; /* movl $1, %eax */
+    code[6] = 0x01;
+    code[7] = 0x00;
+    code[8] = 0x00;
+    code[9] = 0x00;
+    code[10] = 0xCD; /* int $0x80 */
+    code[11] = 0x80;
+    size = 12;
+    
+    fclose(fp);
+    
+    return size;
 }
 
 void load(char *infile, char *outfile)
@@ -63,10 +103,23 @@ void load(char *infile, char *outfile)
   
   size_t ehdrsz, phdrsz;
   
+  unsigned char code[1024];
+  int code_size;
+  int i;
+  
+  assemble(infile);
+  
+  code_size = read_program(infile, code);
+  for (i = 0; i < code_size; ++i)
+        printf("%x ", code[i]);
+    
+  printf("\n");
+  
   if (elf_version(EV_CURRENT) == EV_NONE)
     errx(EX_SOFTWARE,"elf_version is ev_none? %s\n",elf_errmsg(-1));
+  fprintf(stderr, "Trying to open %s\n", outfile);
   if ((fd = open(outfile, O_WRONLY | O_CREAT, 0777)) < 0)
-    errx(EX_OSERR, "open %s\n",elf_errmsg(-1));
+    errx(EX_OSERR, "error opening %s: %s\n", outfile, elf_errmsg(-1));
   if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL)
     errx(EX_SOFTWARE,"elf_begin %s\n",elf_errmsg(-1));
   if ((ehdr = elf32_newehdr(e)) == NULL)
@@ -99,7 +152,7 @@ void load(char *infile, char *outfile)
    data->d_off = 0LL;
    data->d_buf = code; /*ponteiro ao inicio do cÛdigo*/
    data->d_type = ELF_T_BYTE; /*o cÛdigo vai usar dados no formato ELF_T_BYTE*/
-   data->d_size = sizeof(code); /*tamanho do cÛdigo*/
+   data->d_size = code_size; /*tamanho do cÛdigo*/
    data->d_version = EV_CURRENT;
   
    if ((shdr = elf32_getshdr(scn)) == NULL)
@@ -117,7 +170,7 @@ void load(char *infile, char *outfile)
    
    phdr->p_type = PT_LOAD; /*descreve o tipo de segmento a ser interpretado, neste caso: SEGMENTO CARREGAVEL*/
    phdr->p_offset = 0;
-   phdr->p_filesz = ehdrsz + phdrsz + sizeof(code); /*indica o tamanho da da imagem, tamanho das tabelas + tamanho do cÛdigo*/
+   phdr->p_filesz = ehdrsz + phdrsz + code_size; /*indica o tamanho da da imagem, tamanho das tabelas + tamanho do cÛdigo*/
    phdr->p_memsz = phdr->p_filesz; /*tamanho de bytes necess·rio em memÛria para carregar a imagem*/
    phdr->p_vaddr = LOADADDR; /*endereÁo virtual onde o primeiro byte do programa deve estar em memÛria*/
    phdr->p_paddr = phdr->p_vaddr; /*endereÁo fÌsico (normalmente ignorado j· que È utilizado o endereÁo virtual)*/
@@ -132,5 +185,5 @@ void load(char *infile, char *outfile)
   elf_end(e);
   close(fd);
   
-  return 0;
+  printf("finished\n");
 }
