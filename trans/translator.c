@@ -25,19 +25,38 @@
 #include "object_file.h"
 #include "asm_opcodes_table.h"
 #include "translation_table.h"
+#include <inttypes.h>
 
-/**
- * Assemble a given source code input and writes the object file to the output file. It
- * first parses each line from the source and analyse its label, operation and operands.
- * Errors happen when an operation cannot be identified as an instruction nor as a
- * directive. Undefined labels and writing to constant memory addresses errors can only be
- * evaluated after parsing the whole source code.
- * @param input Source code file name.
- * @param output Object file name.
- */
-void translate(char *input, char *output)
+#define DATA 0
+#define TEXT 1
+
+#define ADD 0
+#define SUB 1
+#define MULT 2
+#define DIV 3
+#define JMP 4
+#define JMPN 5
+#define JMPP 6
+#define JMPZ 7
+#define COPY 8
+#define LOAD 9
+#define STORE 10
+#define INPUT 11
+#define OUTPUT 12
+#define STOP 13
+
+#define LOADADDR 0x08048080
+
+typedef struct
 {
-    FILE *fout;
+    char label[9];
+    int position;
+    int defined;
+} label_table_t;
+
+void translate(char *input, char *output, char *ops)
+{
+    FILE *fout, *fops;
     object_file_t object;
     hash_table_t asm_opcodes_table;
     hash_table_t translation_table;
@@ -59,10 +78,20 @@ void translate(char *input, char *output)
     char outline[1024];
     unsigned char opcodes[4096];
     int opcodes_size = 0;
+    int *instructions_id;
+    int *instructions_pos;
+    int instructions_size[] = {7,7,10,12,2,6,6,6,14,6,6,12,12,12};
+    int *labels_type;
+    int *labels_num;
+    int *labels_pos;
+    int int_pos = 0;
+    int label_addr[2];
+    char jmp_addr_8;
 
     printf("===== Translating =====\n");
     
     fout = file_open(output, "w");
+    fops = file_open(ops, "w");
     asm_opcodes_table_init(&asm_opcodes_table);
     translation_table_init(&translation_table);
     object_file_read(input, &object);
@@ -73,6 +102,12 @@ void translate(char *input, char *output)
     instruction_to_line_table = malloc(sizeof(instruction_to_line_table)*object.size);
     
     output_lines = malloc(sizeof(*output_lines)*object.size);
+    
+    instructions_id = malloc(sizeof(instructions_id)*object.size);
+    instructions_pos = malloc(sizeof(instructions_pos)*object.size);
+    labels_type = malloc(sizeof(labels_type)*object.size);
+    labels_num = malloc(sizeof(labels_num)*object.size);
+    labels_pos = malloc(sizeof(labels_pos)*object.size*2);
     
     printf("Text section: %d\nData section: %d\n\n", object.text_section_address, object.data_section_address);
     
@@ -111,18 +146,26 @@ void translate(char *input, char *output)
                 {
                     /* Must be in data section */
                     if (j == 0)
-                        sprintf(label1, "DATA%d", args[j] - object.data_section_address);
+                        sprintf(label1, "DATA%4.4d", args[j] - object.data_section_address);
                     else
-                        sprintf(label2, "DATA%d", args[j] - object.data_section_address);
+                        sprintf(label2, "DATA%4.4d", args[j] - object.data_section_address);
+                        
+                    labels_type[line_number] = DATA;
+                    labels_pos[line_number + object.size*j] = args[j] - object.data_section_address;
+                    labels_num[line_number] = j + 1;
                 }
                 else
                 {
                     /* Must be in text section */
                     if (j == 0)
-                        sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
+                        sprintf(label1, "TEXT%4.4d", args[j] - object.text_section_address);
                     else
-                        sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
+                        sprintf(label2, "TEXT%4.4d", args[j] - object.text_section_address);
                     labels_list[args[j]] = args[j] - object.text_section_address;
+                    
+                    labels_type[line_number] = TEXT;
+                    labels_pos[line_number + object.size*j] = args[j] - object.text_section_address;
+                    labels_num[line_number] = j + 1;
                 }
             }
             else
@@ -131,25 +174,32 @@ void translate(char *input, char *output)
                 {
                     /* Must be in text section */
                     if (j == 0)
-                        sprintf(label1, "TEXT%d", args[j] - object.text_section_address);
+                        sprintf(label1, "TEXT%4.4d", args[j] - object.text_section_address);
                     else
-                        sprintf(label2, "TEXT%d", args[j] - object.text_section_address);
+                        sprintf(label2, "TEXT%4.4d", args[j] - object.text_section_address);
                     labels_list[args[j]] = args[j] - object.text_section_address;
+                    
+                    labels_type[line_number] = TEXT;
+                    labels_pos[line_number + object.size*j] = args[j] - object.text_section_address;
+                    labels_num[line_number] = j + 1;
                 }
                 else
                 {
                     /* Must be in data section */
                     if (j == 0)
-                        sprintf(label1, "DATA%d", args[j] - object.data_section_address);
+                        sprintf(label1, "DATA%4.4d", args[j] - object.data_section_address);
                     else
-                        sprintf(label2, "DATA%d", args[j] - object.data_section_address);
+                        sprintf(label2, "DATA%4.4d", args[j] - object.data_section_address);
+                        
+                    labels_type[line_number] = DATA;
+                    labels_pos[line_number + object.size*j] = args[j] - object.data_section_address;
+                    labels_num[line_number] = j + 1;
                 }
             }
             
             printf("%d ", args[j]);
         }
         printf("-> ");
-        
         
         /* Translating */
         translation_ptr = hash_search(&translation_table, operation);
@@ -168,6 +218,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes[opcodes_size + 6] = 0x00; /* don't care */
             opcodes_size += 7;
+            
+            instructions_id[line_number] = ADD;
         }
         else if (strcmp(operation, "SUB") == 0)
         {
@@ -182,6 +234,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes[opcodes_size + 6] = 0x00; /* don't care */
             opcodes_size += 7;
+            
+            instructions_id[line_number] = SUB;
         }
         else if (strcmp(operation, "MULT") == 0)
         {
@@ -203,7 +257,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 1] = 0xF7;
             opcodes[opcodes_size + 2] = 0xEB;
             opcodes_size += 3;
-                                     
+            
+            instructions_id[line_number] = MULT;    
         }
         else if (strcmp(operation, "DIV") == 0)
         {
@@ -231,6 +286,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 1] = 0xF7;
             opcodes[opcodes_size + 2] = 0xFB;
             opcodes_size += 3;
+            
+            instructions_id[line_number] = DIV;
         }
         else if (strcmp(operation, "JMP") == 0)
         {
@@ -240,6 +297,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size] = 0xEB;
             opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
             opcodes_size += 2;
+            
+            instructions_id[line_number] = JMP;
         }
         else if (strcmp(operation, "JMPN") == 0)
         {
@@ -257,6 +316,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size] = 0x7C;
             opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
             opcodes_size += 2;
+            
+            instructions_id[line_number] = JMPN;
         }
         else if (strcmp(operation, "JMPP") == 0)
         {
@@ -274,6 +335,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size] = 0x7F;
             opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
             opcodes_size += 2;
+            
+            instructions_id[line_number] = JMPP;
         }
         else if (strcmp(operation, "JMPZ") == 0)
         {
@@ -291,6 +354,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size] = 0x74;
             opcodes[opcodes_size + 1] = 0x00; /* don't care */ /* short jump */
             opcodes_size += 2;
+            
+            instructions_id[line_number] = JMPZ;
         }
         else if (strcmp(operation, "COPY") == 0)
         {
@@ -316,6 +381,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes[opcodes_size + 6] = 0x00; /* don't care */
             opcodes_size += 7;
+            
+            instructions_id[line_number] = COPY;
         }
         else if (strcmp(operation, "LOAD") == 0)
         {
@@ -329,6 +396,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes_size += 6;
+            
+            instructions_id[line_number] = LOAD;
         }
         else if (strcmp(operation, "STORE") == 0)
         {
@@ -342,6 +411,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 4] = 0x00; /* don't care */
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes_size += 6;
+            
+            instructions_id[line_number] = STORE;
         }
         else if (strcmp(operation, "INPUT") == 0)
         {
@@ -365,6 +436,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 5] = 0x00; /* don't care */
             opcodes[opcodes_size + 6] = 0x00; /* don't care */
             opcodes_size += 7;
+            
+            instructions_id[line_number] = INPUT;
         }
         else if (strcmp(operation, "OUTPUT") == 0)
         {
@@ -388,6 +461,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 3] = 0x00;
             opcodes[opcodes_size + 4] = 0x00;
             opcodes_size += 5;
+            
+            instructions_id[line_number] = OUTPUT;
         }
         else if (strcmp(operation, "STOP") == 0)
         {
@@ -413,6 +488,8 @@ void translate(char *input, char *output)
             opcodes[opcodes_size + 10] = 0xCD;
             opcodes[opcodes_size + 11] = 0x80;
             opcodes_size += 12;
+            
+            instructions_id[line_number] = STOP;
         }
         
         printf("%s\n", trans_operation);
@@ -421,9 +498,23 @@ void translate(char *input, char *output)
         output_lines[line_number] = malloc(sizeof(char)*256);
         strcpy(output_lines[line_number], outline);
         
+        instructions_pos[line_number] = int_pos;
+        int_pos += instructions_size[instructions_id[line_number]];
+        
+        printf("Instruction id: %d\n", instructions_id[line_number]);
+        printf("Label type: %d\n", labels_type[line_number]);
+        printf("Label num: %d\n", labels_num[line_number]);
+        if (labels_num[line_number] == 1)
+            printf("Label pos: %d\n", labels_pos[line_number]);
+        else
+            printf("Label pos: %d, %d\n", labels_pos[line_number], labels_pos[line_number + object.size]);
+        printf("Instruction position: %d\n", instructions_pos[line_number]);
+        
         /* Skip for the number of parameters */
         i += asm_opcode_ptr->size - 1;
         line_number += 1;
+        
+        printf("\n");
         
         /* After an STOP instruction, everything will be data (or the program is over) */
         if (strcmp(asm_opcode_ptr->instruction, "STOP") == 0)
@@ -436,10 +527,8 @@ void translate(char *input, char *output)
     {
         if (labels_list[i] != -1)
         {
-            /*printf("%d: %d -> %d\n", i, labels_list[i], instruction_to_line_table[labels_list[i]]);*/
-            sprintf(outline, "TEXT%d: ", labels_list[i]);
+            sprintf(outline, "TEXT%4.4d: ", labels_list[i]);
             strcat(outline, output_lines[instruction_to_line_table[labels_list[i]]]);
-            /*printf("%d, %s", instruction_to_line_table[labels_list[i]], outline);*/
             strcpy(output_lines[instruction_to_line_table[labels_list[i]]], outline);
         }
     }
@@ -462,17 +551,235 @@ void translate(char *input, char *output)
            break;
     
         value = object_file_get(object, i);
-        sprintf(trans_operation, "DATA%d dw %d", (i - object.data_section_address), value);
+        sprintf(trans_operation, "DATA%4.4d dw %d", (i - object.data_section_address), value);
         printf("%s\n", trans_operation);
         
         fprintf(fout, "%s\n", trans_operation);
     }
+    
+    for (i = 0; i < line_number; ++i)
+    {
+        printf("ID: %d\tPOS: %3.3d\t", instructions_id[i], instructions_pos[i]);
+        if (labels_type[i] == DATA)
+            printf("DATA\t");
+        else
+            printf("TEXT\t");
+        printf("LABELS: ");
+        for (j = 0; j < labels_num[i]; ++j)
+            printf("%d ", labels_pos[i + object.size*j]);
+        printf("ADDR: ");
+        
+        for (j = 0; j < labels_num[i]; ++j)
+        {
+            if (labels_type[i] == DATA)
+                label_addr[j] = LOADADDR + int_pos + 2*labels_pos[i + object.size*j];
+            else
+                label_addr[j] = LOADADDR + instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]];
+              
+            printf("%d (%x) ", label_addr[j], label_addr[j]);
+        }
+        printf("\n");
+        
+        printf("Jump address: %d - %d = %d (%x - %x = %x = %x)",
+               (instructions_pos[instruction_to_line_table[labels_pos[i]]]),
+               (instructions_pos[i]),
+               ((instructions_pos[instruction_to_line_table[labels_pos[i]]]) - (instructions_pos[i])),
+               (instructions_pos[instruction_to_line_table[labels_pos[i]]]),
+               (instructions_pos[i]),
+               ((instructions_pos[instruction_to_line_table[labels_pos[i]]]) - (instructions_pos[i])),
+               ((instructions_pos[instruction_to_line_table[labels_pos[i]]]) - (instructions_pos[i])) & 0xFF
+              );
+        
+        printf("%8.8x: ", LOADADDR + instructions_pos[i]);
+        switch (instructions_id[i])
+        {
+            case ADD:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("ADD ");
+                for (j = 0; j < 7; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case SUB:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("SUB ");
+                for (j = 0; j < 7; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case MULT:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("MULT ");
+                for (j = 0; j < 10; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case DIV:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("DIV ");
+                for (j = 0; j < 12; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case JMP:
+                jmp_addr_8 = ((instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]])
+                              - (instructions_pos[i]));
+                opcodes[instructions_pos[i] + 1] = jmp_addr_8;
+                
+                printf("JMP ");
+                for (j = 0; j < 2; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case JMPN:
+                jmp_addr_8 = ((instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]])
+                              - (instructions_pos[i]));
+                opcodes[instructions_pos[i] + 5] = jmp_addr_8;
+                
+                printf("JMPN ");
+                for (j = 0; j < 6; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case JMPP:
+                jmp_addr_8 = ((instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]])
+                              - (instructions_pos[i]));
+                opcodes[instructions_pos[i] + 5] = jmp_addr_8;
+            
+                printf("JMPP ");
+                for (j = 0; j < 6; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case JMPZ:
+                jmp_addr_8 = ((instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]])
+                              - (instructions_pos[i]));
+                opcodes[instructions_pos[i] + 5] = jmp_addr_8;
+                
+                printf("JMPZ ");
+                for (j = 0; j < 6; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case COPY:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                opcodes[instructions_pos[i] + 10] = label_addr[1] & 0xFF;
+                opcodes[instructions_pos[i] + 11] = (label_addr[1] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 12] = (label_addr[1] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 13] = (label_addr[1] >> 24) & 0xFF;
+                
+                printf("COPY ");
+                for (j = 0; j < 14; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case LOAD:
+                opcodes[instructions_pos[i] + 2] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 3] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("LOAD ");
+                for (j = 0; j < 6; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case STORE:
+                opcodes[instructions_pos[i] + 2] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 3] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("STORE ");
+                for (j = 0; j < 6; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case INPUT:
+                opcodes[instructions_pos[i] + 8] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 9] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 10] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 11] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("INPUT ");
+                for (j = 0; j < 12; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case OUTPUT:
+                opcodes[instructions_pos[i] + 3] = label_addr[0] & 0xFF;
+                opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 8) & 0xFF;
+                opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
+                opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
+                
+                printf("OUTPUT ");
+                for (j = 0; j < 12; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+                
+            case STOP:
+                printf("STOP ");
+                for (j = 0; j < 12; ++j)
+                    printf("%2.2x ", opcodes[instructions_pos[i] + j]);
+                printf("\n");
+                break;
+        }
+    }
+    
+    for (i = object.data_section_address, j = 0 ; i < object.size; ++i, j+=2)
+    {
+        /* Data section finished and text section is beginning */
+        if ((object.data_section_address < object.text_section_address)
+           && (i >= object.text_section_address))
+           break;
+    
+        value = object_file_get(object, i);
+        opcodes[opcodes_size + j] = value & 0xFF;
+        opcodes[opcodes_size + j + 1] = (value >> 8) & 0xFF;
+        
+        printf("%8.8x: %2.2x %2.2x\n", LOADADDR + opcodes_size + j, opcodes[opcodes_size + j], opcodes[opcodes_size + j + 1]);
+    }
+    opcodes_size += j;
     
     printf("Opcodes:\n");
     
     j = 0;
     for (i = 0; i < opcodes_size; ++i)
     {
+        fprintf(fops, "%2.2x ", opcodes[i]);
         printf("%2.2x", opcodes[i]);
         
         if (j == 15)
@@ -489,10 +796,17 @@ void translate(char *input, char *output)
         
         ++j;
     }
-    printf("\n");
+    printf("\n\n");
     
     hash_destroy(&asm_opcodes_table);
     hash_destroy(&translation_table);
     free(labels_list);
+    free(labels_num);
+    free(labels_type);
+    free(labels_pos);
+    free(instructions_id);
+    free(instructions_pos);
+    free(instruction_to_line_table);
     fclose(fout);
+    fclose(fops);
 }

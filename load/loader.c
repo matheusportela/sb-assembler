@@ -7,7 +7,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 
-#define LOADADDR    0x08048000 /*endereÁo virtual onde sera carregado o programa*/
+#define LOADADDR    0x08048080 /*endereÁo virtual onde sera carregado o programa*/
 
 
 /* ELF FORMAT
@@ -32,59 +32,53 @@ PHDR: a tablea de cabeÁalho do Programa com informaÁıes especÌficas do progr
 +----------------------------------+
 */
 
-void assemble(char *filename)
+int read_program(char *filename, char *code)
 {
     FILE *fp = fopen(filename, "r");
-    char buffer[1024];
-    
-    /* First pass: get labels */
-    char *token;
-    
-    while (!feof(fp))
-    {
-        if (fgets(buffer, 1024, fp) != NULL)
-        {
-            token = strtok(buffer, " ");
-            if ((token != NULL) && (token[strlen(token) - 1] == ':'))
-            {
-                token[strlen(token) - 1] = '\0';
-                printf("Token: %s\n", token);
-            }
-        }
-    }
-    
-    fclose(fp);
-}
-
-int read_program(char *filename, unsigned char *code)
-{
-    FILE *fp = fopen(filename, "r");
+    int value;
+    int i = 0;
     int size = 0;
     
-    /*
-    int value;
-    
     while (!feof(fp))
     {
-        fscanf(fp, "%d", &value);
+        fscanf(fp, "%x", &value);
+    
+        printf("%2.2x", value);
+        
+        if (i == 15)
+        {
+            printf("\n");
+            i = 0;
+            continue;
+        }
+        
+        if ((i+1) % 4 == 0)
+        {
+            printf(" ");
+        }
+        
         code[size] = value;
+        
+        ++i;
         ++size;
     }
-    */
+    printf("\n\n");
     
-    code[0] = 0xBB; /* movl $42, %ebx */
+    /*
+    code[0] = 0xBB;
     code[1] = 0x2A;
     code[2] = 0x00;
     code[3] = 0x00;
     code[4] = 0x00;
-    code[5] = 0xB8; /* movl $1, %eax */
+    code[5] = 0xB8;
     code[6] = 0x01;
     code[7] = 0x00;
     code[8] = 0x00;
     code[9] = 0x00;
-    code[10] = 0xCD; /* int $0x80 */
+    code[10] = 0xCD;
     code[11] = 0x80;
     size = 12;
+    */
     
     fclose(fp);
     
@@ -103,17 +97,10 @@ void load(char *infile, char *outfile)
   
   size_t ehdrsz, phdrsz;
   
-  unsigned char code[1024];
+  char code[4098];
   int code_size;
-  int i;
-  
-  assemble(infile);
   
   code_size = read_program(infile, code);
-  for (i = 0; i < code_size; ++i)
-        printf("%x ", code[i]);
-    
-  printf("\n");
   
   if (elf_version(EV_CURRENT) == EV_NONE)
     errx(EX_SOFTWARE,"elf_version is ev_none? %s\n",elf_errmsg(-1));

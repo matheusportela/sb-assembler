@@ -10,25 +10,21 @@
 #include "assembler.h"
 #include "translator.h"
 
-void parse_arguments(int argc, char **argv, char **infile, char **outfile);
+void parse_arguments(int argc, char **argv, char **infile, char **outfile, char **opsfile);
 void make_preprocess_filename(char **infile, char **prefile);
 void make_binary_filename(char **infile, char **binfile);
 
-/**
- * Main function. Parse the arguments, preprocess the input file and assemble the
- * preprocessed file, generating an object file.
- */
 int main(int argc, char **argv)
 {
     char *infile, *outfile;
-    char *prefile, *binfile;
+    char *prefile, *binfile, *opsfile;
     
-    parse_arguments(argc, argv, &infile, &outfile);
+    parse_arguments(argc, argv, &infile, &outfile, &opsfile);
     make_preprocess_filename(&infile, &prefile);
     make_binary_filename(&infile, &binfile);
     preprocess(infile, prefile);
     assemble(prefile, binfile);
-    translate(binfile, outfile);
+    translate(binfile, outfile, opsfile);
     
     free(prefile);
     free(binfile);
@@ -36,26 +32,21 @@ int main(int argc, char **argv)
     return 0;
 }
 
-/**
- * Get arguments from command line
- * @param argc number of arguments
- * @param argv command line arguments
- * @param infile input file name with code in assembly
- * @param outfile output file name for object code
- */
-void parse_arguments(int argc, char **argv, char **infile, char **outfile)
+void parse_arguments(int argc, char **argv, char **infile, char **outfile, char **opsfile)
 {
-    if (argc != 3)
+    if (argc != 4)
         error(ERROR_COMMAND_LINE, "Wrong number of arguments\n"
               "Usage: tradutor <input> <output>");
     
     *infile = argv[1];
     *outfile = argv[2];
+    *opsfile = argv[3];
     
     
     printf("===== Parsing arguments =====\n");
     printf("Input file: %s\n", *infile);
     printf("Output file: %s\n", *outfile);
+    printf("Opcodes file: %s\n", *opsfile);
     printf("\n");
 }
 
