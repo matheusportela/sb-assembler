@@ -87,8 +87,6 @@ void translate(char *input, char *output, char *ops)
     int int_pos = 0;
     int label_addr[2];
     char jmp_addr_8;
-
-    printf("===== Translating =====\n");
     
     fout = file_open(output, "w");
     fops = file_open(ops, "w");
@@ -109,7 +107,9 @@ void translate(char *input, char *output, char *ops)
     labels_num = malloc(sizeof(labels_num)*object.size);
     labels_pos = malloc(sizeof(labels_pos)*object.size*2);
     
+    /*
     printf("Text section: %d\nData section: %d\n\n", object.text_section_address, object.data_section_address);
+    */
     
     /* Analysing the instructions */
     fprintf(fout, "extern LerInteiro\n"
@@ -120,6 +120,11 @@ void translate(char *input, char *output, char *ops)
                   "_start:\n");
     for (i = object.text_section_address; i < object.size; ++i)
     {
+        /* Text section finished and data section is beginning */
+        if ((object.text_section_address < object.data_section_address)
+           && (i >= object.data_section_address))
+           break;
+        
         /* Find the instruction from the ASM opcode value */
         sprintf(asm_opcode_str, "%d", object_file_get(object, i));
         asm_opcode_ptr = hash_search(&asm_opcodes_table, asm_opcode_str);
@@ -135,7 +140,9 @@ void translate(char *input, char *output, char *ops)
             args[j] = object_file_get(object, i+j+1);
         
         /* Rebuilt instruction */
+        /*
         printf("%s ", operation);
+        */
         for (j = 0; j < num_args; ++j)
         {
             instruction_to_line_table[i+j+1] = line_number;
@@ -197,9 +204,13 @@ void translate(char *input, char *output, char *ops)
                 }
             }
             
+            /*
             printf("%d ", args[j]);
+            */
         }
+        /*
         printf("-> ");
+        */
         
         /* Translating */
         translation_ptr = hash_search(&translation_table, operation);
@@ -492,7 +503,9 @@ void translate(char *input, char *output, char *ops)
             instructions_id[line_number] = STOP;
         }
         
+        /*
         printf("%s\n", trans_operation);
+        */
         sprintf(outline, "%s\n", trans_operation);
         
         output_lines[line_number] = malloc(sizeof(char)*256);
@@ -501,6 +514,7 @@ void translate(char *input, char *output, char *ops)
         instructions_pos[line_number] = int_pos;
         int_pos += instructions_size[instructions_id[line_number]];
         
+        /*
         printf("Instruction id: %d\n", instructions_id[line_number]);
         printf("Label type: %d\n", labels_type[line_number]);
         printf("Label num: %d\n", labels_num[line_number]);
@@ -509,20 +523,21 @@ void translate(char *input, char *output, char *ops)
         else
             printf("Label pos: %d, %d\n", labels_pos[line_number], labels_pos[line_number + object.size]);
         printf("Instruction position: %d\n", instructions_pos[line_number]);
+        */
         
         /* Skip for the number of parameters */
         i += asm_opcode_ptr->size - 1;
         line_number += 1;
         
+        /*
         printf("\n");
-        
-        /* After an STOP instruction, everything will be data (or the program is over) */
-        if (strcmp(asm_opcode_ptr->instruction, "STOP") == 0)
-            break;
+        */
     }
     
     /* Giving labels to text section */
+    /*
     printf("\nLabels list\n");
+    */
     for (i = 0; i < object.size; ++i)
     {
         if (labels_list[i] != -1)
@@ -533,10 +548,14 @@ void translate(char *input, char *output, char *ops)
         }
     }
     
+    /*
     printf("\nOutput lines\n");
+    */
     for (i = 0; i < line_number; ++i)
     {
+        /*
         printf("%s", output_lines[i]);
+        */
         fprintf(fout, "%s", output_lines[i]);
         free(output_lines[i]);
     }
@@ -552,13 +571,16 @@ void translate(char *input, char *output, char *ops)
     
         value = object_file_get(object, i);
         sprintf(trans_operation, "DATA%4.4d dw %d", (i - object.data_section_address), value);
+        /*
         printf("%s\n", trans_operation);
+        */
         
         fprintf(fout, "%s\n", trans_operation);
     }
     
     for (i = 0; i < line_number; ++i)
     {
+        /*
         printf("ID: %d\tPOS: %3.3d\t", instructions_id[i], instructions_pos[i]);
         if (labels_type[i] == DATA)
             printf("DATA\t");
@@ -568,6 +590,7 @@ void translate(char *input, char *output, char *ops)
         for (j = 0; j < labels_num[i]; ++j)
             printf("%d ", labels_pos[i + object.size*j]);
         printf("ADDR: ");
+        */
         
         for (j = 0; j < labels_num[i]; ++j)
         {
@@ -575,9 +598,12 @@ void translate(char *input, char *output, char *ops)
                 label_addr[j] = LOADADDR + int_pos + 2*labels_pos[i + object.size*j];
             else
                 label_addr[j] = LOADADDR + instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]];
-              
+            
+            /*
             printf("%d (%x) ", label_addr[j], label_addr[j]);
+            */
         }
+        /*
         printf("\n");
         
         printf("Jump address: %d - %d = %d (%x - %x = %x = %x)",
@@ -591,6 +617,7 @@ void translate(char *input, char *output, char *ops)
               );
         
         printf("%8.8x: ", LOADADDR + instructions_pos[i]);
+        */
         switch (instructions_id[i])
         {
             case ADD:
@@ -599,10 +626,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("ADD ");
                 for (j = 0; j < 7; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case SUB:
@@ -611,10 +640,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("SUB ");
                 for (j = 0; j < 7; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case MULT:
@@ -623,10 +654,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("MULT ");
                 for (j = 0; j < 10; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case DIV:
@@ -635,10 +668,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("DIV ");
                 for (j = 0; j < 12; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case JMP:
@@ -646,10 +681,12 @@ void translate(char *input, char *output, char *ops)
                               - (instructions_pos[i]));
                 opcodes[instructions_pos[i] + 1] = jmp_addr_8;
                 
+                /*
                 printf("JMP ");
                 for (j = 0; j < 2; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case JMPN:
@@ -657,21 +694,25 @@ void translate(char *input, char *output, char *ops)
                               - (instructions_pos[i]));
                 opcodes[instructions_pos[i] + 5] = jmp_addr_8;
                 
+                /*
                 printf("JMPN ");
                 for (j = 0; j < 6; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case JMPP:
                 jmp_addr_8 = ((instructions_pos[instruction_to_line_table[labels_pos[i + object.size*j]]])
                               - (instructions_pos[i]));
                 opcodes[instructions_pos[i] + 5] = jmp_addr_8;
-            
+                
+                /*
                 printf("JMPP ");
                 for (j = 0; j < 6; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case JMPZ:
@@ -679,10 +720,12 @@ void translate(char *input, char *output, char *ops)
                               - (instructions_pos[i]));
                 opcodes[instructions_pos[i] + 5] = jmp_addr_8;
                 
+                /*
                 printf("JMPZ ");
                 for (j = 0; j < 6; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case COPY:
@@ -696,10 +739,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 12] = (label_addr[1] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 13] = (label_addr[1] >> 24) & 0xFF;
                 
+                /*
                 printf("COPY ");
                 for (j = 0; j < 14; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case LOAD:
@@ -708,10 +753,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("LOAD ");
                 for (j = 0; j < 6; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case STORE:
@@ -720,10 +767,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 4] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("STORE ");
                 for (j = 0; j < 6; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case INPUT:
@@ -732,10 +781,12 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 10] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 11] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("INPUT ");
                 for (j = 0; j < 12; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case OUTPUT:
@@ -744,17 +795,21 @@ void translate(char *input, char *output, char *ops)
                 opcodes[instructions_pos[i] + 5] = (label_addr[0] >> 16) & 0xFF;
                 opcodes[instructions_pos[i] + 6] = (label_addr[0] >> 24) & 0xFF;
                 
+                /*
                 printf("OUTPUT ");
                 for (j = 0; j < 12; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
                 
             case STOP:
+                /*
                 printf("STOP ");
                 for (j = 0; j < 12; ++j)
                     printf("%2.2x ", opcodes[instructions_pos[i] + j]);
                 printf("\n");
+                */
                 break;
         }
     }
@@ -770,7 +825,9 @@ void translate(char *input, char *output, char *ops)
         opcodes[opcodes_size + j] = value & 0xFF;
         opcodes[opcodes_size + j + 1] = (value >> 8) & 0xFF;
         
+        /*
         printf("%8.8x: %2.2x %2.2x\n", LOADADDR + opcodes_size + j, opcodes[opcodes_size + j], opcodes[opcodes_size + j + 1]);
+        */
     }
     opcodes_size += j;
     

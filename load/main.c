@@ -34,7 +34,7 @@ void parse_arguments(int argc, char **argv, char **infile, char **outfile)
     *infile = argv[1];
     *outfile = argv[2];
     
-    printf("===== Parsing arguments =====\n");
+    printf("===== Loader =====\n");
     printf("Input file: %s\n", *infile);
     printf("Output file: %s\n", *outfile);
     printf("\n");

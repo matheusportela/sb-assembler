@@ -24,8 +24,6 @@ void preprocess(char *filename, char *output)
 {
     hash_table_t equate_table;
     
-    printf("===== Pre-processing =====\n");
-    
     equate_table_init(&equate_table);
     preprocessor_first_pass(filename, &equate_table);
     preprocessor_second_pass(filename, output, &equate_table);
@@ -140,7 +138,6 @@ void preprocessor_second_pass(char *filename, char *output, hash_table_t *equate
             continue;
         }
         
-        printf("%s", line_buffer);
         fprintf(fout, "%s", line_buffer);
     }
     

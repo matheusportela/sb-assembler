@@ -36,33 +36,14 @@ int read_program(char *filename, char *code)
 {
     FILE *fp = fopen(filename, "r");
     int value;
-    int i = 0;
     int size = 0;
     
     while (!feof(fp))
     {
         fscanf(fp, "%x", &value);
-    
-        printf("%2.2x", value);
-        
-        if (i == 15)
-        {
-            printf("\n");
-            i = 0;
-            continue;
-        }
-        
-        if ((i+1) % 4 == 0)
-        {
-            printf(" ");
-        }
-        
         code[size] = value;
-        
-        ++i;
         ++size;
     }
-    printf("\n\n");
     
     /*
     code[0] = 0xBB;
@@ -104,7 +85,6 @@ void load(char *infile, char *outfile)
   
   if (elf_version(EV_CURRENT) == EV_NONE)
     errx(EX_SOFTWARE,"elf_version is ev_none? %s\n",elf_errmsg(-1));
-  fprintf(stderr, "Trying to open %s\n", outfile);
   if ((fd = open(outfile, O_WRONLY | O_CREAT, 0777)) < 0)
     errx(EX_OSERR, "error opening %s: %s\n", outfile, elf_errmsg(-1));
   if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL)
@@ -171,6 +151,4 @@ void load(char *infile, char *outfile)
   
   elf_end(e);
   close(fd);
-  
-  printf("finished\n");
 }

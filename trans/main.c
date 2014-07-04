@@ -36,14 +36,14 @@ void parse_arguments(int argc, char **argv, char **infile, char **outfile, char 
 {
     if (argc != 4)
         error(ERROR_COMMAND_LINE, "Wrong number of arguments\n"
-              "Usage: tradutor <input> <output>");
+              "Usage: tradutor <input> <output> <opcodes>");
     
     *infile = argv[1];
     *outfile = argv[2];
     *opsfile = argv[3];
     
     
-    printf("===== Parsing arguments =====\n");
+    printf("===== Translator =====\n");
     printf("Input file: %s\n", *infile);
     printf("Output file: %s\n", *outfile);
     printf("Opcodes file: %s\n", *opsfile);
@@ -55,7 +55,6 @@ void make_preprocess_filename(char **infile, char **prefile)
     *prefile = malloc(sizeof(char)*(strlen(*infile) + 4));
     strcpy(*prefile, *infile);
     strcat(*prefile, ".pre");
-    printf("Preprocess filename: %s\n", *prefile);
 }
 
 void make_binary_filename(char **infile, char **binfile)
@@ -63,5 +62,4 @@ void make_binary_filename(char **infile, char **binfile)
     *binfile = malloc(sizeof(char)*(strlen(*infile) + 4));
     strcpy(*binfile, *infile);
     strcat(*binfile, ".bin");
-    printf("Binary filename: %s\n", *binfile);
 }

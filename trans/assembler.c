@@ -82,7 +82,6 @@ void assemble(char *input, char *output)
     fp = file_open(input, "r");
     
     /* Assembling */
-    printf("===== Assembling =====\n");
     
     while (file_read_line(fp, line_buffer) != FILE_FINISHED)
     {
@@ -95,8 +94,6 @@ void assemble(char *input, char *output)
         
         /* Scanning */
         scan_line_elements(&elements, line_buffer);
-        printf("%15.15s | %15.15s | %15.15s | %15.15s\n", elements.label,
-               elements.operation, elements.operand1, elements.operand2);
         
         /* Label analysis */
         if (element_has_label(&elements))
@@ -159,9 +156,6 @@ void assemble(char *input, char *output)
     
     if (object_file.text_section_address == -1)
         error(ERROR_SYNTACTIC, "Text section missing");
-    
-    /* Printing */
-    object_file_print(object_file);
     
     /* Writing */
     object_file_write(output, object_file);
